@@ -20,11 +20,8 @@ class HtmlRepo {
   ///especially updating the video duration when video is being uploaded for video thumbnail.
   ///this is to update the video total duration so as to make progress accurate and consistent.
 
-
-
-
-//This is still the get and set function.
-/*{ “videos” : [ {videoUrl1: {image: thumbnailUrl1, duration:duration1, savedDuration: lastSavedDuration1} },
+  //This is still the get and set function.
+  /*{ “videos” : [ {videoUrl1: {image: thumbnailUrl1, duration:duration1, savedDuration: lastSavedDuration1} },
 {videoUrl2 : {image: thumbnailUrl2, duration:duration2, savedDuration: lastSavedDuration2} },
  {videoUrl3 : {image: thumbnailUrl3, duration:duration3, savedDuration: lastSavedDuration3 } },
  {videoUrl4 : {image: thumbnailUrl4, duration:duration4, savedDuration: lastSavedDuration4} },
@@ -33,12 +30,8 @@ class HtmlRepo {
  “lastSCrollposition”: lastSCrollposition,
 }*/
 
-
-
-
   ///API to save the videos with their video current position.
   /// That would be gotten in real-time.
-  
 }
 
 @riverpod
@@ -46,12 +39,12 @@ HtmlRepo repo(Ref ref) => HtmlRepo();
 
 List<HtmlData> content = [
   HtmlData(
-      articleIcon: '',
-      articleData: '''
+    articleIcon: '',
+    articleData: '''
    <html>
 <body>
   <article>
-    <h1>Sample Article Initial</h1>
+    <h1>First Page</h1>
     <p>This is the initial paragraph with some sample content of the first page.<br>The Next Line</p>
     <h2>List Example</h2>
     <ul>
@@ -184,14 +177,15 @@ List<HtmlData> content = [
 </body>
 </html>
   ''',
-      title: 'THE FIRST ARTICLE'),
+    title: 'THE FIRST ARTICLE',
+  ),
   HtmlData(
-      articleIcon: '',
-      articleData: '''
+    articleIcon: '',
+    articleData: '''
  <html>
 <body>
   <article>
-    <h1>Sample Article second page</h1>
+    <h1>Second Article</h1>
     <p>This is the second paragraph with some sample content.<br>The Next Line</p>
     <h2>List Example</h2>
     <ul>
@@ -238,14 +232,15 @@ List<HtmlData> content = [
 </body>
 </html>
  ''',
-      title: 'THE SECOND ARTICLE'),
+    title: 'THE SECOND ARTICLE',
+  ),
   HtmlData(
-      articleIcon: '',
-      articleData: '''
+    articleIcon: '',
+    articleData: '''
   <html>
 <body>
   <article>
-    <h1>Sample Article</h1>
+    <h1>Third Article</h1>
     <p>This is a paragraph with some sample content.<br>The Next Line</p>
     <h2>List Example</h2>
     <ul>
@@ -292,8 +287,11 @@ List<HtmlData> content = [
 </body>
 </html>
  ''',
-      title: 'THE THIRD ARTICLE')
+    title: 'THE THIRD ARTICLE',
+  ),
 ];
 
 HtmlFullContent htmlcontent = HtmlFullContent(
-    htmlContents: content, videosTotalDuration: 60070 + 653803 + 213000);
+  htmlContents: content,
+  videosTotalDuration: 60070 + 653803 + 213000,
+);

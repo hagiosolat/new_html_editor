@@ -158,48 +158,115 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     final state2 = ref.watch(htmlFullContentControllerProvider);
     return SafeArea(
       child:
-          isWebviewvisible
-              ? PopScope(
-                canPop: false,
-                onPopInvokedWithResult: (didPopUp, result) {
-                  setState(() {
-                    isWebviewvisible = false;
-                  });
-                },
-                child: Scaffold(
-                  floatingActionButton:
-                      selectedTextlength >= 1
-                          ? !kIsWeb
-                              ? ElevatedButton(
-                                onPressed: () async {
-                                  final selection =
-                                      await widget.controller
-                                          .getSelectionRange();
-                                  if (selection.length == 0) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Select text to comment on',
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    showModalSheetScreen(
-                                      selectedTextPosition,
-                                      selectedTextlength,
-                                    );
-                                  }
-                                },
-                                child: const Text('Add Comment'),
-                              )
-                              : const SizedBox.shrink()
-                          : const SizedBox.shrink(),
-                  backgroundColor: Colors.white,
-                  resizeToAvoidBottomInset: true,
-                  body:
-                      kIsWeb
-                          //WEB VERSION EDITOR OUTLOOK
-                          ? CustomScrollView(
+      // isWebviewvisible
+      //     ?
+      PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPopUp, result) {
+          setState(() {
+            isWebviewvisible = false;
+          });
+        },
+        child: Scaffold(
+          floatingActionButton:
+              selectedTextlength >= 1
+                  ? !kIsWeb
+                      ? ElevatedButton(
+                        onPressed: () async {
+                          final selection =
+                              await widget.controller.getSelectionRange();
+                          if (selection.length == 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Select text to comment on'),
+                              ),
+                            );
+                          } else {
+                            showModalSheetScreen(
+                              selectedTextPosition,
+                              selectedTextlength,
+                            );
+                          }
+                        },
+                        child: const Text('Add Comment'),
+                      )
+                      : const SizedBox.shrink()
+                  : const SizedBox.shrink(),
+          backgroundColor: Colors.white,
+          resizeToAvoidBottomInset: true,
+          body: Container(
+            child: LayoutBuilder(
+              builder: (context, constraint) {
+                return Stack(
+                  children: [
+                    //THE LIST OF ARTICLES TO BE READ
+                    Visibility(
+                      visible: !isWebviewvisible,
+                      child: ListView.builder(
+                        physics: ScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: state2.htmlContents.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                textContent =
+                                    state2.htmlContents[index].articleData ??
+                                    '';
+                                setHtmlTextToEditor(
+                                  state2.htmlContents[index].articleData ?? '',
+                                );
+                                isWebviewvisible = true;
+                              });
+                              // Navigator.push(context,
+                              //     MaterialPageRoute(builder: (context) {
+                              //   return EditorScreen(
+                              //     htmlContent:
+                              //         state.htmlContents[index].articleData ?? '',
+                              //     videosTotalDuration: state.videosTotalDuration!,
+                              //     //state[index].articleData ?? '',
+                              //   );
+                              // }));
+                            },
+                            child: Container(
+                              height: 70,
+                              margin: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 25,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(9),
+                                border: Border.all(
+                                  color: Colors.blueGrey.shade200,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Article $index',
+                                    style: TextStyle(
+                                      fontFamily: 'Time New Roman',
+                                      fontSize: 25,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  //  Icon(color: Colors.grey, Icons.arrow_forward),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    kIsWeb
+                        //WEB VERSION EDITOR OUTLOOK
+                        ? Offstage(
+                          offstage: !isWebviewvisible,
+                          child: CustomScrollView(
                             slivers: [
                               SliverToBoxAdapter(
                                 child: Column(
@@ -345,9 +412,15 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                 //   ) //  ],),
                               ),
                             ],
-                          )
-                          //THE MOBILE VERSION EDITOR OUTLOOK
-                          : Column(
+                          ),
+                        )
+                        //THE MOBILE VERSION EDITOR OUTLOOK
+                        :
+                        // Expanded(
+                        //   child:
+                        Offstage(
+                          offstage: !isWebviewvisible,
+                          child: Column(
                             children: [
                               toolbar(),
                               ProgressBars(
@@ -432,139 +505,94 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                               ),
                             ],
                           ),
-                  bottomNavigationBar:
-                      kIsWeb
-                          ? selectedTextlength >= 1
-                              ? Container(
-                                width: double.maxFinite,
-                                padding: const EdgeInsets.all(8.0),
-                                margin: const EdgeInsets.only(bottom: 10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Theme.of(context).canvasColor,
-                                      blurRadius: 0.1,
-                                      spreadRadius: 0.4,
-                                      offset: const Offset(2, 6),
-                                    ),
-                                  ],
-                                ),
-                                child: Wrap(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        top: 14.0,
-                                        left: 9,
-                                        right: 9,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          TextField(
-                                            controller: commentController,
-                                            decoration: InputDecoration(
-                                              hintText: 'Make your comment...',
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(50),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 9),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceAround,
-                                            children: [
-                                              ElevatedButton(
-                                                onPressed: () {},
-                                                child: const Text('Cancel'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  _addComment(
-                                                    commentController.text,
-                                                  );
-                                                  widget.controller.setFormat(
-                                                    format: 'background',
-                                                    value: '#FF9800',
-                                                  );
-                                                },
-                                                child: const Text('Comment'),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                              : const SizedBox.shrink()
-                          : const SizedBox.shrink(),
-                ),
-              )
-              : Scaffold(
-                backgroundColor: Colors.white,
-                body: Center(
-                  child: ListView.builder(
-                    itemCount: state2.htmlContents.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            textContent =
-                                state2.htmlContents[index].articleData ?? '';
-                            isWebviewvisible = true;
-                          });
-                          // Navigator.push(context,
-                          //     MaterialPageRoute(builder: (context) {
-                          //   return EditorScreen(
-                          //     htmlContent:
-                          //         state.htmlContents[index].articleData ?? '',
-                          //     videosTotalDuration: state.videosTotalDuration!,
-                          //     //state[index].articleData ?? '',
-                          //   );
-                          // }));
-                        },
-                        child: Container(
-                          height: 70,
-                          margin: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 25,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(9),
-                            border: Border.all(color: Colors.blueGrey.shade200),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Article $index',
-                                style: TextStyle(
-                                  fontFamily: 'Time New Roman',
-                                  fontSize: 25,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              //  Icon(color: Colors.grey, Icons.arrow_forward),
-                            ],
-                          ),
                         ),
-                      );
-                    },
-                  ),
+                    //  ),
+                  ],
+                );
+              },
+            ),
+          ),
 
-                  //  Column(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //
-                  //   ],
-                  // ),
-                ),
-              ),
+          bottomNavigationBar:
+              kIsWeb
+                  ? selectedTextlength >= 1
+                      ? Container(
+                        width: double.maxFinite,
+                        padding: const EdgeInsets.all(8.0),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).canvasColor,
+                              blurRadius: 0.1,
+                              spreadRadius: 0.4,
+                              offset: const Offset(2, 6),
+                            ),
+                          ],
+                        ),
+                        child: Wrap(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 14.0,
+                                left: 9,
+                                right: 9,
+                              ),
+                              child: Column(
+                                children: [
+                                  TextField(
+                                    controller: commentController,
+                                    decoration: InputDecoration(
+                                      hintText: 'Make your comment...',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(50),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 9),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () {},
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          _addComment(commentController.text);
+                                          widget.controller.setFormat(
+                                            format: 'background',
+                                            value: '#FF9800',
+                                          );
+                                        },
+                                        child: const Text('Comment'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      : const SizedBox.shrink()
+                  : const SizedBox.shrink(),
+        ),
+      ),
+      //THE IDEA IS SUCH THAT THIS SHOULD HAVE THE LIST OF THE ARTICLES
+      // : Scaffold(
+      //   backgroundColor: Colors.white,
+      //   body: Center(
+      //     //  Column(
+      //     //   mainAxisAlignment: MainAxisAlignment.center,
+      //     //   children: [
+      //     //
+      //     //   ],
+      //     // ),
+      //   ),
+      // ),
       //),
     );
   }
@@ -594,6 +622,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               Future.delayed(const Duration(microseconds: 0)).then((value) {
                 widget.controller.enableEditor(isEnabled);
                 if (textContent.isNotEmpty) {
+                  print('This is the textContent of the webview $textContent');
                   setHtmlTextToEditor(textContent);
                   _webviewController.callJsMethod('setScrollPosition', [
                     totalProgressMap['scrollPosition'],
@@ -625,6 +654,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 setState(() {});
               }
               widget.controller.enableEditor(isEnabled);
+              print('This is the textContent of the webview $textContent');
               if (textContent.isNotEmpty) {
                 print(
                   'When page has finished loading 3333333333333333333333333333333333333333355555555555555555555555555555555555',
