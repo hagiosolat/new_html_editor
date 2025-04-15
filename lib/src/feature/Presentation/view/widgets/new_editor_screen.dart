@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:new_html_editor/new_html_editor.dart';
+import 'package:new_html_editor/src/feature/Application/data_services.dart';
 import 'package:new_html_editor/src/feature/Presentation/controller/html_content_controller.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/mobile_youtube_video.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/progress_bar.dart';
@@ -76,11 +77,18 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   Map<String, dynamic> videoProgressMap = {};
 
-  Map<String, dynamic> controllerMap = {};
+  // Map<String, dynamic> controllerMap = {};
+
+  Map<String, dynamic> metaDataTotal = {};
+
+  Map<String, dynamic> metaData = {};
 
   double totalInteractionProgress = 0.0;
 
-  final int videosTotalDuration = 60070 + 653803 + 213000;
+  int videosTotalDuration = 0;
+  //= 60070 + 653803 + 213000;
+
+  // int singleVideoDuration = 0;
 
   ScrollController scrollController = ScrollController();
 
@@ -88,11 +96,12 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   StreamController<num> progressController = StreamController();
 
+  StreamController<Map<String, dynamic>> totalVideoProgressController =
+      StreamController();
+
   String _initialContent = "";
 
   double _currentPosition = 0.0;
-
-  double _maxPosition = 0.0;
 
   double _videoProgress = 0.0;
 
@@ -117,6 +126,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   String textContent = '';
 
+  bool editorEnable = false;
+
   bool ensureVisible = false;
 
   late String _fontFamily;
@@ -131,14 +142,34 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
     widget.controller.onTextChanged((testi) {
       debugPrint('listening to $testi');
+      if (editorEnable) {
+        if (kIsWeb) {
+          print("This is the meteaData that is being used $metaData");
+          setVideoPosition(videos: metaData);
+          setState(() {
+            editorEnable = false;
+          });
+        } else {
+          setScrollPosition(scrollPosition: 10000.0);
+        }
+      }
     });
+    //CONTROLLER FOR TOTALPROGRESS
+
+    //CONTROLLER FOR ARTICLEPROGRESS
+    totalVideoProgressController.stream.listen((event) {
+      _updateTotalVideoProgress();
+    });
+
     //ENABLE THE STREAM CONTROLLER TO LISTEN FOR DATA UPDATES
     progressController.stream.listen((event) {
       setState(() {
-        print(
-          'fhjshsjhfjfhdjfhjdhfjhs77777777777777777777777777777777777$_progress',
-        );
+        //THIS IS THE ARTICLE SCROLL PROGRESS ONLY WITHOUT CONSIDERING THE VIDEO DURATION.
         _progress = event;
+        _getTotalProgress();
+        ref
+            .read(paramsUpateControllerProvider.notifier)
+            .updateScrollProgress(_progress);
       });
     });
     super.initState();
@@ -155,16 +186,21 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(editorControllerProvider);
-    final state2 = ref.watch(htmlFullContentControllerProvider);
+    final state2 = ref.watch(htmlContentControllerProvider);
     return SafeArea(
-      child:
-      // isWebviewvisible
-      //     ?
-      PopScope(
+      child: PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPopUp, result) {
           setState(() {
             isWebviewvisible = false;
+            editorEnable = false;
+            if (!kIsWeb) {
+              _progress = 0;
+              totalInteractionProgress = 0.0;
+              _videoProgress = 0.0;
+              totalProgressMap.clear();
+              videoProgressMap.clear();
+            }
           });
         },
         child: Scaffold(
@@ -205,28 +241,66 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                       child: ListView.builder(
                         physics: ScrollPhysics(),
                         shrinkWrap: true,
-                        itemCount: state2.htmlContents.length,
+                        itemCount: state2.length,
                         itemBuilder: (context, index) {
                           return GestureDetector(
                             onTap: () {
-                              setState(() {
-                                textContent =
-                                    state2.htmlContents[index].articleData ??
-                                    '';
-                                setHtmlTextToEditor(
-                                  state2.htmlContents[index].articleData ?? '',
-                                );
-                                isWebviewvisible = true;
-                              });
-                              // Navigator.push(context,
-                              //     MaterialPageRoute(builder: (context) {
-                              //   return EditorScreen(
-                              //     htmlContent:
-                              //         state.htmlContents[index].articleData ?? '',
-                              //     videosTotalDuration: state.videosTotalDuration!,
-                              //     //state[index].articleData ?? '',
-                              //   );
-                              // }));
+                              if (kIsWeb) {
+                                setState(() {
+                                  metaData = ref.read(
+                                    dataServicesProvider(index),
+                                  );
+                                  videosTotalDuration = ref.read(
+                                    videoTotalDurationProvider(index),
+                                  );
+                                  textContent = state2[index].articleData ?? '';
+                                  setHtmlTextToEditor(
+                                    state2[index].articleData ?? '',
+                                  );
+                                  editorEnable = true;
+                                  _progress = 0;
+                                  totalInteractionProgress = 0.0;
+                                  _videoProgress = 0.0;
+                                  totalProgressMap.clear();
+                                  videoProgressMap.clear();
+                                  isWebviewvisible = true;
+                                });
+                              } else {
+                                setState(() {
+                                  metaDataTotal = ref.read(
+                                    mobileDataServicesProvider(index),
+                                  );
+                                  metaData = ref.read(
+                                    dataServicesProvider(index),
+                                  );
+                                  videosTotalDuration = ref.read(
+                                    videoTotalDurationProvider(index),
+                                  );
+                                  totalProgressMap = metaDataTotal;
+                                  videoProgressMap = metaData;
+                                  setHtmlTextToEditor(
+                                    state2[index].articleData ?? '',
+                                  );
+                                  if (mobileScrollController.hasClients) {
+                                    mobileScrollController.animateTo(
+                                      0,
+                                      // metaDataTotal['scrollPosition'] ?? 0.0,
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  }
+
+                                  progressController.add(
+                                    metaDataTotal['scrollPosition'] ?? 0.0,
+                                  );
+                                  editorEnable = true;
+                                  //  _getTotalProgress();
+                                  _updateTotalVideoProgress();
+                                  isWebviewvisible = true;
+                                });
+                              }
                             },
                             child: Container(
                               height: 70,
@@ -296,10 +370,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                 ),
                               ),
                               SliverFillRemaining(
-                                //height: MediaQuery.of(context).size.height,
-                                child:
-                                //Column(children: [//  Expanded(child:
-                                Row(
+                                child: Row(
                                   children: [
                                     Flexible(
                                       flex: 3,
@@ -414,11 +485,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                             ],
                           ),
                         )
-                        //THE MOBILE VERSION EDITOR OUTLOOK
-                        :
-                        // Expanded(
-                        //   child:
-                        Offstage(
+                        //MOBILE VERSION EDITOR OUTLOOK
+                        : Offstage(
                           offstage: !isWebviewvisible,
                           child: Column(
                             children: [
@@ -444,16 +512,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                 color: Colors.lightBlue,
                               ),
                               Expanded(
-                                // flex: 10,
                                 child: SingleChildScrollView(
                                   controller: mobileScrollController,
-                                  child:
-                                  //  isLoading
-                                  //     ? const Center(
-                                  //         child: CircularProgressIndicator(),
-                                  //       )
-                                  //     :
-                                  state.when(
+                                  child: state.when(
                                     data:
                                         (data) => LayoutBuilder(
                                           builder: (context, constraints) {
@@ -477,7 +538,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                   MediaQuery.of(
                                                     context,
                                                   ).size.height,
-                                              // padding: widget.padding,
                                             );
                                             return _buildEditorView(
                                               context: context,
@@ -581,19 +641,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   : const SizedBox.shrink(),
         ),
       ),
-      //THE IDEA IS SUCH THAT THIS SHOULD HAVE THE LIST OF THE ARTICLES
-      // : Scaffold(
-      //   backgroundColor: Colors.white,
-      //   body: Center(
-      //     //  Column(
-      //     //   mainAxisAlignment: MainAxisAlignment.center,
-      //     //   children: [
-      //     //
-      //     //   ],
-      //     // ),
-      //   ),
-      // ),
-      //),
     );
   }
 
@@ -602,10 +649,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     required double width,
     required String scripts,
   }) {
-    //  _initialContent = scripts;
-    // print(textContent);
-    // print('OOOOOOOOOOOOKKKKKKKKKAAAAAAAAAAAAAAAAAAYYYYYYYYYYYYYYYYYYYY');
-    print(_currentHeight);
+    //print(_currentHeight);
     return Stack(
       children: [
         WebViewX(
@@ -616,29 +660,12 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
           onPageStarted: (s) {
             _editorLoaded = false;
             if (kIsWeb) {
-              print(
-                'KIS WEB being printed 3333333333333333333333333333333333333333355555555555555555555555555555555555',
-              );
               Future.delayed(const Duration(microseconds: 0)).then((value) {
                 widget.controller.enableEditor(isEnabled);
                 if (textContent.isNotEmpty) {
-                  print('This is the textContent of the webview $textContent');
+                  // print('This is the textContent of the webview $textContent');
                   setHtmlTextToEditor(textContent);
-                  _webviewController.callJsMethod('setScrollPosition', [
-                    totalProgressMap['scrollPosition'],
-                  ]);
-                  setVideoPosition(
-                    videos:
-                        const {
-                          'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1':
-                              13055.963938964844,
-                          'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4':
-                              13749.145999999999,
-                          'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4':
-                              323413.349,
-                        } ??
-                        {},
-                  );
+                  // setScrollPosition(scrollPosition: metaData['scrollPosition']);
                 }
               });
             }
@@ -654,37 +681,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 setState(() {});
               }
               widget.controller.enableEditor(isEnabled);
-              print('This is the textContent of the webview $textContent');
               if (textContent.isNotEmpty) {
-                print(
-                  'When page has finished loading 3333333333333333333333333333333333333333355555555555555555555555555555555555',
-                );
                 setHtmlTextToEditor(textContent);
               }
               if (autofocus == true) {
                 widget.controller.focus();
               }
-              // if (widget.onEditorCreated != null) {
-              //   widget.onEditorCreated!();
-              // }
               widget.controller.editorLoadedController?.add('');
-              _webviewController.callJsMethod('setScrollPosition', [
-                totalProgressMap['scrollPosition'],
-              ]);
-              if (kIsWeb) {
-                setVideoPosition(
-                  videos:
-                      const {
-                        'https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1':
-                            13055.963938964844,
-                        'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4':
-                            13749.145999999999,
-                        'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4':
-                            323413.349,
-                      } ??
-                      {},
-                );
-              }
             });
           },
           dartCallBacks: {
@@ -698,18 +701,12 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   _currentHeight =
                       double.tryParse(height.toString()) ??
                       MediaQuery.of(context).size.height;
-
-                  /// widget.minHeight;
                 } catch (e) {
                   _currentHeight = MediaQuery.of(context).size.height;
-                  // widget.minHeight;
                 } finally {
                   if (mounted) {
                     setState(() => _currentHeight);
                   }
-                  // if (widget.onEditorResized != null) {
-                  //   widget.onEditorResized!(_currentHeight);
-                  // }
                 }
               },
             ),
@@ -755,6 +752,21 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 } catch (e) {
                   if (!kReleaseMode) {
                     debugPrint(e.toString());
+                  }
+                }
+              },
+            ),
+            DartCallback(
+              name: 'ScrollReady',
+              callBack: (message) {
+                if (message != null) {
+                  //I CAN SEND IT TO THIS PLACE FROM THE DATA LAYER...
+                  if (kIsWeb) {
+                    setScrollPosition(scrollPosition: 1000.0);
+                    setVideoPosition(
+                      //TODO: Get the List of videos coming from cloud Firestore and update it here.
+                      videos: metaData,
+                    );
                   }
                 }
               },
@@ -864,9 +876,12 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 _editorLoaded = true;
                 if (mounted) {
                   setState(() {});
+                  print('This is the editorLoaded function which is $map');
                 }
               },
             ),
+            //THIS IS FOR TRACKING THE CURRENT VIDEO THAT IS PLAYING BOTH YOUTUBE AND
+            //NORMAL VIDEO
             DartCallback(
               name: 'GetVideoTracking',
               callBack: (timing) {
@@ -875,7 +890,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     var video = VideoProgressTracking.fromJson(
                       jsonDecode(timing),
                     );
-
                     if (kIsWeb) {
                       setState(() {
                         // From here I can get the current Position and then pass
@@ -884,12 +898,23 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                             video.currentPosition;
                         totalProgressMap[video.videoUrl] =
                             video.currentPosition;
-                        _updateTotalProgress();
+                        // _updateTotalVideoProgress();
                         _getTotalProgress();
                         //THE ESSENCE OF THE CONTROLLER MAP IS FOR RESUMPTION
                         //FROM WHERE THE VIDEO LEFT OFF
-                        controllerMap[video.videoUrl] = video.currentPosition;
+                        //   singleVideoDuration = video.totalDuration;
+
+                        print(videoProgressMap);
                       });
+                      ref
+                          .read(paramsUpateControllerProvider.notifier)
+                          .updateCurrentVideoProgress(
+                            articleID: '',
+                            videoUrl: video.videoUrl,
+                            currentPosition: video.currentPosition,
+                            //  singleVideoDuration: singleVideoDuration,
+                          );
+                      totalVideoProgressController.add(videoProgressMap);
                     }
                   }
                 } catch (e) {
@@ -917,34 +942,28 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               name: 'GetScrollPosition',
               callBack: (message) {
                 try {
+                  // print('This is the message from the scrollPosition $message');
                   if (message != null) {
                     var p0 = CustomScrollPosition.fromJson(jsonDecode(message));
-                    if (!kIsWeb) {
-                      // print(
-                      //     'scrollTop is ${p0.scrollTop}, currentPosition ${p0.currentPosition}');
-                      setState(() {
-                        // _progress = p0.currentPosition ?? 0.0;
-                        print(
-                          'Maximum Scroll Position is for web Version ${p0.maxScroll}',
-                        );
-                        scrollength = p0.maxScroll ?? 0.0;
-                        totalProgressMap['scrollPosition'] = p0.scrollTop;
-
-                        //This is the streamController that will be sending the progress to the backend.
-                        progressController.add(p0.currentPosition ?? 0.0);
-                        _getTotalProgress();
-                      });
-                    } else {
+                    if (kIsWeb) {
                       // print(
                       //     'scrollTop is ${p0.scrollTop}, currentPosition ${p0.currentPosition}');
                       setState(() {
                         //_progress = p0.currentPosition ?? 0.0;
                         scrollength = p0.maxScroll ?? 0.0;
-                        print('Maximum Scroll Position is ${p0.maxScroll}');
+                        // print(
+                        //   'Maximum Scroll Position is ${p0.currentPosition}',
+                        // );
                         totalProgressMap['scrollPosition'] = p0.scrollTop;
                         //This is the stream that will be sending the progress to the backend.
                         progressController.add(p0.currentPosition ?? 0.0);
-                        _getTotalProgress();
+                        //  _getTotalProgress();
+                      });
+                    } else {
+                      setState(() {
+                        print(
+                          'This is the currentPosition of the scroll ${p0.currentPosition}',
+                        );
                       });
                     }
                   }
@@ -995,16 +1014,18 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                         //Then update the video with the duration
                         videoProgressMap[videolink] = 60070;
                         totalProgressMap[videolink] = 60070;
-                        _updateTotalProgress();
+                        //  _updateTotalVideoProgress();
                         _getTotalProgress();
+                        print(videoProgressMap);
 
                         //THIS SHOULD BE THAT THE CONTROLLERMAP IS NOW AT THE END
                         //OF THE VIDEO
                         //SO WHEN IT IS RESUMED, IT WILL START FROM THE BEGIIING
-                        controllerMap[videolink] = const Duration(
-                          milliseconds: 60070,
-                        );
+                        // controllerMap[videolink] = const Duration(
+                        //   milliseconds: 60070,
+                        // );
                       });
+                      totalVideoProgressController.add(videoProgressMap);
                     }
                   }
                 } catch (e) {
@@ -1067,35 +1088,41 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     );
   }
 
-  // function for total progress
+  // Function for total progress
   void _getTotalProgress() {
-    /// Get the scroll Length
-    /// Get the total Duration
+    /// Get the scroll Length Position
+    /// Get the total Duration, that would be the totalVideoDuration
+    //TODO: In updating the totalInteractionProgress include all the videos and the
+    //scrollPosition.
     setState(() {
+      // [totalProgressMap] contains the scrollPosition and the video Data.
       totalInteractionProgress =
           (totalProgressMap.values.fold(
             0.0,
             (sum, progressTtotal) => sum + progressTtotal,
           )) /
           (videosTotalDuration + scrollength.toDouble());
+      ref
+          .read(paramsUpateControllerProvider.notifier)
+          .updateTotalProgress(totalProgressMap);
     });
   }
 
   // Listen to changes in the scroll position
-
   // This method will be called on every scroll event
   void _onScroll() {
     setState(() {
       _currentPosition =
           mobileScrollController.position.pixels; // current position
-      _maxPosition = mobileScrollController.position.maxScrollExtent;
-
-      _progress = (_currentPosition / _maxPosition).abs(); // max position
-      print('This is the progress on scrolling bar ${_progress.toDouble()}');
+      scrollength = mobileScrollController.position.maxScrollExtent;
+      double progress = (_currentPosition / scrollength).abs(); // max position
+      totalProgressMap['scrollPosition'] = _currentPosition;
+      progressController.add(progress);
     });
   }
 
-  void _updateTotalProgress() {
+  void _updateTotalVideoProgress() {
+    //TODO:ideoProgressMap to be updated with the videoList data from backend upon loading.
     if (videoProgressMap.isNotEmpty) {
       _videoProgress =
           (videoProgressMap.values.fold(
@@ -1117,8 +1144,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
         return MobileYoutubeVideoWidget(
           //I want to pass duration to start back where the video stops
           positioning:
-              controllerMap.containsKey(youtubeLink)
-                  ? controllerMap[youtubeLink]
+              metaData.containsKey(youtubeLink)
+                  ? Duration(milliseconds: metaData[youtubeLink])
                   : Duration.zero,
           videoUrl: youtubeLink,
           durationRation: (duration) {
@@ -1128,16 +1155,26 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             //when the video has been paused on quit.
             // send the position to this point and then save it
             // to the Map Controller to retrieve it back when resumed.
-            controllerMap[youtubeLink] = totalDuration;
           },
           currentPosition: (currentPosition) {
-            // print('$currentPosition');
             setState(() {
               videoProgressMap[youtubeLink] = currentPosition.inMilliseconds;
               totalProgressMap[youtubeLink] = currentPosition.inMilliseconds;
-              _updateTotalProgress();
+              //UPDATING THE CLOUD FIRESTORE WHEN PLAYING YOUTUBE VIDEO ON MOBILE
+              //TODO: Try it if it is not inside the setstate.
+              ref
+                  .read(paramsUpateControllerProvider.notifier)
+                  .updateCurrentVideoProgress(
+                    articleID: '',
+                    videoUrl: youtubeLink,
+                    currentPosition: currentPosition.inMilliseconds,
+                    //   singleVideoDuration: singleVideoDuration,
+                  );
+              // _updateTotalVideoProgress();
+              print(videoProgressMap);
               _getTotalProgress();
             });
+            totalVideoProgressController.add(videoProgressMap);
           },
         );
       },
@@ -1156,24 +1193,36 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             type: MaterialType.transparency,
             child: VideoWidget(
               positioning:
-                  controllerMap.containsKey(videolink)
-                      ? controllerMap[videolink]
+                  metaData.containsKey(videolink)
+                      ? Duration(milliseconds: metaData[videolink])
                       : Duration.zero,
               videoUrl: videolink,
-              videoDuration: (currentTime) {
+              videoDuration: (videoduration) {
                 ///This is to save the videoDuration when the video has been exited
                 ///from the pop-up
-                controllerMap[videolink] = currentTime;
-                print(controllerMap[videolink]);
+                ///THIS MAY NOT BE NECESSARY AS THE CURRENTtIME SAVING IS DONE IN REAL-TIME
+                //  singleVideoDuration = videoduration.inMilliseconds;
               },
               videoRatio: (videoPercentage) {},
               currentPosition: (currentTime) {
                 setState(() {
                   videoProgressMap[videolink] = currentTime.inMilliseconds;
                   totalProgressMap[videolink] = currentTime.inMilliseconds;
-                  _updateTotalProgress();
+                  //UPDATING THE CLOUD FIRESTORE WHEN PLAYING NORMALS VIDEO ON MOBILE
+                  //TODO:Try it if it is not inside the setstate function.
+                  ref
+                      .read(paramsUpateControllerProvider.notifier)
+                      .updateCurrentVideoProgress(
+                        articleID: '',
+                        videoUrl: videolink,
+                        currentPosition: currentTime.inMilliseconds,
+                        //  singleVideoDuration: singleVideoDuration,
+                      );
+                  //  _updateTotalVideoProgress();
+                  print(videoProgressMap);
                   _getTotalProgress();
                 });
+                totalVideoProgressController.add(videoProgressMap);
               },
             ),
           ),
@@ -1214,7 +1263,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     });
   }
 
-  ///Modal Bottom Sheet
+  ///WEB VERSION COMMENT Modal Bottom Sheet
   showModalSheetScreen(int index, int length) {
     showModalBottomSheet(
       context: context,
@@ -1517,6 +1566,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// set the savedScrollPosition to load the pre-existing web Position
   Future _setScrollPosition({required double scrollPosition}) async {
+    print(
+      'calling the setScrollPositionn@@@@@@@@@@@@@@@@@@@@@@@@ $scrollPosition',
+    );
     return await _webviewController.callJsMethod("setScrollPosition", [
       scrollPosition,
     ]);
@@ -1541,4 +1593,9 @@ void _printWrapper(bool showPrint, String text) {
   if (showPrint) {
     debugPrint(text);
   }
+}
+
+class Comment {
+  final String text;
+  Comment({required this.text});
 }

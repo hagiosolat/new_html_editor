@@ -18,14 +18,41 @@ class HtmlContentController extends _$HtmlContentController {
 }
 
 @riverpod
-class HtmlFullContentController extends _$HtmlFullContentController {
+class ParamsUpateController extends _$ParamsUpateController {
   @override
-  HtmlFullContent build() {
-    return getHtmlFullContent();
+  void build() {}
+
+  void updateTotalProgress(Map<String, dynamic> totalProgress) async {
+    // print("Can I print the map values for totalProgress $totalProgress");
+    return await ref.read(repoProvider).updateTotalProgress(totalProgress);
   }
 
-  HtmlFullContent getHtmlFullContent() {
-    final repo = ref.read(repoProvider).getWholeContent();
-    return repo;
+  void updateCurrentVideoProgress({
+    required String articleID,
+    required String videoUrl,
+    required num currentPosition,
+
+  }) async {
+    return ref
+        .read(repoProvider)
+        .updateCurrentVideoPosition(
+          articleID: articleID,
+          videoUrl: videoUrl,
+          currentPosition: currentPosition,
+         
+        );
+  }
+
+  void updateScrollProgress(num readProgress) async {
+    return await ref.read(repoProvider).updateScrollProgress(readProgress);
   }
 }
+
+//TODO:sorting out data to Map data type from here.
+//I CAN HAVE A CONTROLLER THAT CAN DO THE WORK OF MAKING AVAILABLE THE DATAS NEEDED
+//I WOULD HAVE SORTED OUT ALL THE DATA NEEDED TO BE ASSIGNED TO THE MAP FROM THIS LAYER.
+
+
+//FROM THIS POINT IT WILL REQUIRES THAT I SORTED THE MAP TYPE BY
+//1. HAVING THE LAST SCROLL POSITION IN THE MAP WITH THE 
+//2. VIDEO DATA: BASICALLY THE VIDEO URL AND THE LAST SAVED DURATION.

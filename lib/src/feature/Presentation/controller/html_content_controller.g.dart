@@ -13,32 +13,34 @@ String _$htmlContentControllerHash() =>
 @ProviderFor(HtmlContentController)
 final htmlContentControllerProvider =
     AutoDisposeNotifierProvider<HtmlContentController, List<HtmlData>>.internal(
-  HtmlContentController.new,
-  name: r'htmlContentControllerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$htmlContentControllerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      HtmlContentController.new,
+      name: r'htmlContentControllerProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$htmlContentControllerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$HtmlContentController = AutoDisposeNotifier<List<HtmlData>>;
-String _$htmlFullContentControllerHash() =>
-    r'26273d3c4d00943a86e3b4adf4fa0306927c0153';
+String _$paramsUpateControllerHash() =>
+    r'd04d7ce198ad6e04c3bca5cf2cb5d95355d4fd36';
 
-/// See also [HtmlFullContentController].
-@ProviderFor(HtmlFullContentController)
-final htmlFullContentControllerProvider = AutoDisposeNotifierProvider<
-    HtmlFullContentController, HtmlFullContent>.internal(
-  HtmlFullContentController.new,
-  name: r'htmlFullContentControllerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$htmlFullContentControllerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+/// See also [ParamsUpateController].
+@ProviderFor(ParamsUpateController)
+final paramsUpateControllerProvider =
+    AutoDisposeNotifierProvider<ParamsUpateController, void>.internal(
+      ParamsUpateController.new,
+      name: r'paramsUpateControllerProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$paramsUpateControllerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
-typedef _$HtmlFullContentController = AutoDisposeNotifier<HtmlFullContent>;
+typedef _$ParamsUpateController = AutoDisposeNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

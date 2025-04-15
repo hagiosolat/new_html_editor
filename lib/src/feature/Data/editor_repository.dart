@@ -28,18 +28,18 @@ class EditorRepository {
     return response;
   }
 
-  void loadHtmlContent(SendPort sendPort) async {
-    //Receive messages from main thread
-    final ReceivePort receivePort = ReceivePort();
-    sendPort.send(receivePort.sendPort);
+  // void loadHtmlContent(SendPort sendPort) async {
+  //   //Receive messages from main thread
+  //   final ReceivePort receivePort = ReceivePort();
+  //   sendPort.send(receivePort.sendPort);
 
-    await for (final message in receivePort) {
-      if (message is Map<String, dynamic>) {
-        String htmlContent = htmlLoader(message);
-        message["responsePort"].send(htmlContent);
-      }
-    }
-  }
+  //   await for (final message in receivePort) {
+  //     if (message is Map<String, dynamic>) {
+  //       String htmlContent = htmlLoader(message);
+  //       message["responsePort"].send(htmlContent);
+  //     }
+  //   }
+  // }
 
   String htmlLoader(Map<String, dynamic> params) {
     String fontFamily = params['fontFamily'];
@@ -266,8 +266,6 @@ class EditorRepository {
                 FocusChanged.postMessage(isQuillFocused());
               }
             });*/
-            
-         
          
             function applyGoogleKeyboardWorkaround(editor) {
               try {
@@ -320,16 +318,19 @@ class EditorRepository {
             var tempText = "";
             var observer = new MutationObserver(function(mutations) {
                  var text = quilleditor.root.innerHTML; 
+                 console.log('#################testing the mutation observers!!!')
                  if(text != tempText){
                       tempText = text;
-                     if($kIsWeb) {
+                      console.log(`\${text}`);
+                     if($kIsWeb) {                  
                       OnTextChanged(text);
-                    } else {
+                      } else {
                       OnTextChanged.postMessage(text);
-                    }
+                    }                     
                      onRangeChanged(); 
                      quilleditor.focus();
-                 }
+                 } 
+
             });
 
             // configuration of the observer:
@@ -433,15 +434,15 @@ class EditorRepository {
            applyGoogleKeyboardWorkaround(quilleditor);
             
             let editorLoaded = false;
-            quilleditor.on('editor-change', function(eventName, ...args) {
-      
+            quilleditor.on('editor-change', function(eventName, ...args) {   
+              console.log("3############################################test change");   
              if (!editorLoaded) {
                 if($kIsWeb) {
                     EditorLoaded(true);
                 } else {
                     EditorLoaded.postMessage(true);
                 }
-                  editorLoaded = true;
+                 // editorLoaded = true;
                 }             
             });
             
@@ -453,7 +454,14 @@ class EditorRepository {
               }else{
               OnSelectionChanged.postMessage(getSelectionRange());
               }                
-            });    
+            });   
+
+      //       function setScrollPosition(savedScrollPosition){
+      //       console.log('#################################ScrollPosition being set');
+      //      if(savedScrollPosition != null) {
+      //       window.scrollTo(0, parseInt(savedScrollPosition, 10));
+      //   }
+      //  } 
 
             function getSelectionHtml() {
            var selection = quilleditor.getSelection(true);

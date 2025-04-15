@@ -13,9 +13,10 @@ String _$editorRepositoryHash() => r'bab1506c3eb68ff573b110f78f197ffbbcdf2c03';
 final editorRepositoryProvider = AutoDisposeProvider<EditorRepository>.internal(
   editorRepository,
   name: r'editorRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$editorRepositoryHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$editorRepositoryHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

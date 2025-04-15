@@ -2,29 +2,43 @@
 import 'package:equatable/equatable.dart';
 
 class HtmlData extends Equatable {
-  final String? articleIcon;
+  final String? articleID;
   final String? articleData;
   final String? title;
-  final int? videosTotalDuration;
+  final num? videosTotalDuration;
+  final num? totalProgress; //it will scrollPosition, video durations,
+  final num? scrollProgress;
+  //This could be now optional
+  //This could become optional
+  final List<Video>? videos;
   const HtmlData({
-    this.articleIcon,
+    this.articleID,
     this.articleData,
     this.title,
     this.videosTotalDuration,
+    this.totalProgress,
+    this.scrollProgress,
+    this.videos,
   });
   @override
-  List<Object?> get props =>
-      [articleIcon, articleData, title, videosTotalDuration];
+  List<Object?> get props => [
+    articleID,
+    articleData,
+    title,
+    videosTotalDuration,
+    totalProgress,
+    scrollProgress,
+    videos,
+  ];
 }
 
-class HtmlFullContent extends Equatable {
-  final List<HtmlData> htmlContents;
-  final int? videosTotalDuration;
-  const HtmlFullContent({
-    required this.htmlContents,
-    this.videosTotalDuration,
-  });
+class Video extends Equatable {
+  final String? videoUrl;
+  final String? thumbnailUrl;
+  final num? savedDuration;
+
+  const Video({this.videoUrl, this.thumbnailUrl, this.savedDuration});
 
   @override
-  List<Object?> get props => [htmlContents, videosTotalDuration];
+  List<Object?> get props => [videoUrl, thumbnailUrl, savedDuration];
 }
