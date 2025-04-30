@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:new_html_editor/src/feature/Data/dummydata.dart';
+import 'package:new_html_editor_example/Data/dummydata.dart';
+import 'package:new_html_editor_example/Domain/html_data_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:new_html_editor/src/feature/Domain/html_data_model.dart';
 
 part 'html_repo.g.dart';
 
@@ -20,10 +20,12 @@ class HtmlRepo {
   }) async {
     //I CAN CHECK THE INDEX WHERE THE VIDEOURL IS EQUAL TO THE ONE IN THE LIST OF THE
     //AVAILABLE VIDEOS, THEN UPDATE THE CURRENTPOSITION PROPERTY OF THE PARTICULAR VIDEO
+    // print(videoUrl);
+    // print(currentPosition);
   }
 
   Future<void> updateTotalProgress(Map<String, dynamic> articleProgress) async {
-    // print('This is the current article Progress $articleProgress');
+    // print('This is the current article Progress $articleProgress'); in general bothe videos and scrolling
   }
 
   Future<void> updateScrollProgress(num readProgress) async {

@@ -1,5 +1,5 @@
-import 'package:new_html_editor/src/feature/Data/html_repo.dart';
-import 'package:new_html_editor/src/feature/Domain/html_data_model.dart';
+import 'package:new_html_editor_example/Domain/html_data_model.dart';
+import '../../Data/html_repo.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'html_content_controller.g.dart';
@@ -23,7 +23,6 @@ class ParamsUpateController extends _$ParamsUpateController {
   void build() {}
 
   void updateTotalProgress(Map<String, dynamic> totalProgress) async {
-    // print("Can I print the map values for totalProgress $totalProgress");
     return await ref.read(repoProvider).updateTotalProgress(totalProgress);
   }
 
@@ -31,7 +30,6 @@ class ParamsUpateController extends _$ParamsUpateController {
     required String articleID,
     required String videoUrl,
     required num currentPosition,
-
   }) async {
     return ref
         .read(repoProvider)
@@ -39,11 +37,11 @@ class ParamsUpateController extends _$ParamsUpateController {
           articleID: articleID,
           videoUrl: videoUrl,
           currentPosition: currentPosition,
-         
         );
   }
 
   void updateScrollProgress(num readProgress) async {
+    //    print("Printing the scroll Progress of the article $readProgress");
     return await ref.read(repoProvider).updateScrollProgress(readProgress);
   }
 }
@@ -52,7 +50,6 @@ class ParamsUpateController extends _$ParamsUpateController {
 //I CAN HAVE A CONTROLLER THAT CAN DO THE WORK OF MAKING AVAILABLE THE DATAS NEEDED
 //I WOULD HAVE SORTED OUT ALL THE DATA NEEDED TO BE ASSIGNED TO THE MAP FROM THIS LAYER.
 
-
 //FROM THIS POINT IT WILL REQUIRES THAT I SORTED THE MAP TYPE BY
-//1. HAVING THE LAST SCROLL POSITION IN THE MAP WITH THE 
+//1. HAVING THE LAST SCROLL POSITION IN THE MAP WITH THE
 //2. VIDEO DATA: BASICALLY THE VIDEO URL AND THE LAST SAVED DURATION.

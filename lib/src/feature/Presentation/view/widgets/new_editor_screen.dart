@@ -5,8 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:new_html_editor/new_html_editor.dart';
-import 'package:new_html_editor/src/feature/Application/data_services.dart';
-import 'package:new_html_editor/src/feature/Presentation/controller/html_content_controller.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/mobile_youtube_video.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/progress_bar.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/show_web_video.dart';
@@ -16,12 +14,34 @@ import '../../../../core/webviewx/src/models/scroll_position.dart';
 import '../../../../core/webviewx/src/models/selection_model.dart';
 import '../../../../core/webviewx/src/models/video_progress.dart';
 
+// ignore: must_be_immutable
 class NewEditorScreen extends ConsumerStatefulWidget
     with WidgetsBindingObserver {
-  NewEditorScreen({required this.controller})
-    : super(key: controller.editorKey);
+  NewEditorScreen({
+    required this.controller,
+    required this.editorContent,
+    required this.metaData,
+    required this.videosTotalDuration,
+    required this.isOutSideEditor,
+    required this.metaDataTotal,
+    required this.updateScrollProgress,
+    required this.updateTotalProgress,
+    required this.updateCurrentVideoProgress,
+    required this.getVideosUpdates,
+    required this.videoDurationData,
+  }) : super(key: controller.editorKey);
 
   final QuillEditorController controller;
+  final String editorContent;
+  final Map<String, dynamic> metaData;
+  final Map<String, dynamic> metaDataTotal;
+  final Map<String, dynamic> videoDurationData;
+  final int videosTotalDuration;
+  final Function(dynamic) updateScrollProgress;
+  final Function(dynamic, double) updateTotalProgress;
+  final Function(Map<String, dynamic>) updateCurrentVideoProgress;
+  final Function(Map<String, dynamic>, Map<String, dynamic>) getVideosUpdates;
+  bool isOutSideEditor;
 
   @override
   ConsumerState<NewEditorScreen> createState() => NewEditorScreenState();
@@ -77,18 +97,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   Map<String, dynamic> videoProgressMap = {};
 
-  // Map<String, dynamic> controllerMap = {};
-
-  Map<String, dynamic> metaDataTotal = {};
-
-  Map<String, dynamic> metaData = {};
-
   double totalInteractionProgress = 0.0;
-
-  int videosTotalDuration = 0;
-  //= 60070 + 653803 + 213000;
-
-  // int singleVideoDuration = 0;
 
   ScrollController scrollController = ScrollController();
 
@@ -122,6 +131,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   bool isEnabled = true;
 
   bool autofocus = false;
+
   late String _encodedStyle;
 
   String textContent = '';
@@ -134,29 +144,27 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     // _currentHeight = MediaQuery.of(context).size.height;
     _fontFamily = _editorTextStyle.fontFamily ?? 'Roboto';
     _encodedStyle = Uri.encodeFull(_fontFamily);
     mobileScrollController.addListener(_onScroll);
 
-    widget.controller.onTextChanged((testi) {
-      debugPrint('listening to $testi');
-      if (editorEnable) {
-        if (kIsWeb) {
-          print("This is the meteaData that is being used $metaData");
-          setVideoPosition(videos: metaData);
-          setState(() {
-            editorEnable = false;
-          });
-        } else {
-          setScrollPosition(scrollPosition: 10000.0);
-        }
-      }
-    });
+    // widget.controller.onTextChanged((testi) {
+    //   debugPrint('listening to $testi');
+    //   if (editorEnable) {
+    //     if (kIsWeb) {
+    //       setVideoPosition(videos: widget.metaData);
+    //       setState(() {
+    //         editorEnable = false;
+    //       });
+    //     }
+
+    //   }
+    // });
+
     //CONTROLLER FOR TOTALPROGRESS
 
-    //CONTROLLER FOR ARTICLEPROGRESS
+    //CONTROLLER FOR ARTICLE VIDEO PROGRESS
     totalVideoProgressController.stream.listen((event) {
       _updateTotalVideoProgress();
     });
@@ -167,9 +175,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
         //THIS IS THE ARTICLE SCROLL PROGRESS ONLY WITHOUT CONSIDERING THE VIDEO DURATION.
         _progress = event;
         _getTotalProgress();
-        ref
-            .read(paramsUpateControllerProvider.notifier)
-            .updateScrollProgress(_progress);
+        widget.updateScrollProgress(_progress);
       });
     });
     super.initState();
@@ -186,23 +192,29 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(editorControllerProvider);
-    final state2 = ref.watch(htmlContentControllerProvider);
+    //SetScroll Position for the first Option
+    //  if (!kIsWeb && widget.isOutSideEditor) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!kIsWeb && widget.isOutSideEditor) {
+        setHtmlTextToEditor(widget.editorContent);
+        setState(() {
+          videoProgressMap.clear();
+          totalProgressMap.clear();
+          videoProgressMap = widget.metaData;
+          totalProgressMap = widget.metaDataTotal;
+          _updateTotalVideoProgress();
+          _waitAndJumptoSavedScrollPostion();
+          //  _getTotalProgress();
+          widget.isOutSideEditor = false;
+        });
+      }
+    });
+    //  }
+    // final state2 = ref.watch(htmlContentControllerProvider);
     return SafeArea(
       child: PopScope(
         canPop: false,
-        onPopInvokedWithResult: (didPopUp, result) {
-          setState(() {
-            isWebviewvisible = false;
-            editorEnable = false;
-            if (!kIsWeb) {
-              _progress = 0;
-              totalInteractionProgress = 0.0;
-              _videoProgress = 0.0;
-              totalProgressMap.clear();
-              videoProgressMap.clear();
-            }
-          });
-        },
+        onPopInvokedWithResult: (didPopUp, result) {},
         child: Scaffold(
           floatingActionButton:
               selectedTextlength >= 1
@@ -235,337 +247,232 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               builder: (context, constraint) {
                 return Stack(
                   children: [
-                    //THE LIST OF ARTICLES TO BE READ
-                    Visibility(
-                      visible: !isWebviewvisible,
-                      child: ListView.builder(
-                        physics: ScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: state2.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              if (kIsWeb) {
-                                setState(() {
-                                  metaData = ref.read(
-                                    dataServicesProvider(index),
-                                  );
-                                  videosTotalDuration = ref.read(
-                                    videoTotalDurationProvider(index),
-                                  );
-                                  textContent = state2[index].articleData ?? '';
-                                  setHtmlTextToEditor(
-                                    state2[index].articleData ?? '',
-                                  );
-                                  editorEnable = true;
-                                  _progress = 0;
-                                  totalInteractionProgress = 0.0;
-                                  _videoProgress = 0.0;
-                                  totalProgressMap.clear();
-                                  videoProgressMap.clear();
-                                  isWebviewvisible = true;
-                                });
-                              } else {
-                                setState(() {
-                                  metaDataTotal = ref.read(
-                                    mobileDataServicesProvider(index),
-                                  );
-                                  metaData = ref.read(
-                                    dataServicesProvider(index),
-                                  );
-                                  videosTotalDuration = ref.read(
-                                    videoTotalDurationProvider(index),
-                                  );
-                                  totalProgressMap = metaDataTotal;
-                                  videoProgressMap = metaData;
-                                  setHtmlTextToEditor(
-                                    state2[index].articleData ?? '',
-                                  );
-                                  if (mobileScrollController.hasClients) {
-                                    mobileScrollController.animateTo(
-                                      0,
-                                      // metaDataTotal['scrollPosition'] ?? 0.0,
-                                      duration: const Duration(
-                                        milliseconds: 300,
-                                      ),
-                                      curve: Curves.easeInOut,
-                                    );
-                                  }
-
-                                  progressController.add(
-                                    metaDataTotal['scrollPosition'] ?? 0.0,
-                                  );
-                                  editorEnable = true;
-                                  //  _getTotalProgress();
-                                  _updateTotalVideoProgress();
-                                  isWebviewvisible = true;
-                                });
-                              }
-                            },
-                            child: Container(
-                              height: 70,
-                              margin: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 25,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(9),
-                                border: Border.all(
-                                  color: Colors.blueGrey.shade200,
-                                ),
-                              ),
+                    kIsWeb
+                        //WEB VERSION EDITOR OUTLOOK
+                        ?
+                        //  Offstage(
+                        //   offstage: !isWebviewvisible,
+                        //   child:
+                        CustomScrollView(
+                          slivers: [
+                            SliverToBoxAdapter(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Article $index',
-                                    style: TextStyle(
-                                      fontFamily: 'Time New Roman',
-                                      fontSize: 25,
-                                      color: Colors.black,
-                                    ),
+                                  toolbar(),
+                                  ProgressBars(
+                                    label:
+                                        'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
+                                    progress: totalInteractionProgress,
+                                    color: Colors.blue,
                                   ),
-                                  //  Icon(color: Colors.grey, Icons.arrow_forward),
+                                  Container(height: 2, color: Colors.grey),
+                                  ProgressBars(
+                                    label:
+                                        'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
+                                    progress: _videoProgress,
+                                    color: Colors.blueAccent,
+                                  ),
+                                  Container(height: 2, color: Colors.grey),
+                                  ProgressBars(
+                                    label:
+                                        'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
+                                    progress: _progress.toDouble(),
+                                    color: Colors.lightBlue,
+                                  ),
                                 ],
                               ),
                             ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    kIsWeb
-                        //WEB VERSION EDITOR OUTLOOK
-                        ? Offstage(
-                          offstage: !isWebviewvisible,
-                          child: CustomScrollView(
-                            slivers: [
-                              SliverToBoxAdapter(
-                                child: Column(
-                                  children: [
-                                    toolbar(),
-                                    ProgressBars(
-                                      label:
-                                          'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                                      progress: totalInteractionProgress,
-                                      color: Colors.blue,
-                                    ),
-                                    Container(height: 2, color: Colors.grey),
-                                    ProgressBars(
-                                      label:
-                                          'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                                      progress: _videoProgress,
-                                      color: Colors.blueAccent,
-                                    ),
-                                    Container(height: 2, color: Colors.grey),
-                                    ProgressBars(
-                                      label:
-                                          'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                                      progress: _progress.toDouble(),
-                                      color: Colors.lightBlue,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SliverFillRemaining(
-                                child: Row(
-                                  children: [
-                                    Flexible(
-                                      flex: 3,
-                                      child:
-                                          isLoading
-                                              ? const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              )
-                                              : state.when(
-                                                data:
-                                                    (data) => LayoutBuilder(
-                                                      builder: (
-                                                        context,
-                                                        constraints,
-                                                      ) {
-                                                        _initialContent = getQuillPage(
-                                                          width:
-                                                              constraints
-                                                                  .maxWidth,
-                                                          quillJsScript: data,
-                                                          fontFamily:
-                                                              _fontFamily,
-                                                          backgroundColor:
-                                                              _backgroundColor,
-                                                          encodedStyle:
-                                                              _encodedStyle,
-                                                          hintTextPadding:
-                                                              const EdgeInsets.only(
-                                                                left: 20,
-                                                              ),
-                                                          hintTextStyle:
-                                                              _hintTextStyle,
-                                                          hintText: '',
-                                                          textStyle:
-                                                              _editorTextStyle,
-                                                          isEnabled: isEnabled,
-                                                          hintTextAlign:
-                                                              TextAlign.start,
-                                                          inputAction:
-                                                              InputAction
-                                                                  .newline,
-                                                          minHeight:
-                                                              MediaQuery.of(
-                                                                context,
-                                                              ).size.height,
-                                                          // padding: widget.padding,
-                                                        );
-                                                        return _buildEditorView(
-                                                          context: context,
-                                                          width:
-                                                              constraints
-                                                                  .maxWidth,
-                                                          scripts: data,
-                                                        );
-                                                      },
-                                                    ),
-                                                loading:
-                                                    () => Center(
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                            color: Colors.green,
-                                                            strokeWidth: 0.3,
-                                                          ),
-                                                    ),
-                                                error:
-                                                    (e, _) => Column(
-                                                      children: [
-                                                        Icon(Icons.error),
-                                                        Text(e.toString()),
-                                                      ],
-                                                    ),
-                                              ),
-                                    ),
-                                    _comments.isEmpty
-                                        ? const SizedBox.shrink()
-                                        : Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
+                            SliverFillRemaining(
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    flex: 3,
+                                    child:
+                                        isLoading
+                                            ? const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            )
+                                            : state.when(
+                                              data:
+                                                  (data) => LayoutBuilder(
+                                                    builder: (
+                                                      context,
+                                                      constraints,
+                                                    ) {
+                                                      _initialContent = getQuillPage(
+                                                        width:
+                                                            constraints
+                                                                .maxWidth,
+                                                        quillJsScript: data,
+                                                        fontFamily: _fontFamily,
+                                                        backgroundColor:
+                                                            _backgroundColor,
+                                                        encodedStyle:
+                                                            _encodedStyle,
+                                                        hintTextPadding:
+                                                            const EdgeInsets.only(
+                                                              left: 20,
+                                                            ),
+                                                        hintTextStyle:
+                                                            _hintTextStyle,
+                                                        hintText: '',
+                                                        textStyle:
+                                                            _editorTextStyle,
+                                                        isEnabled: isEnabled,
+                                                        hintTextAlign:
+                                                            TextAlign.start,
+                                                        inputAction:
+                                                            InputAction.newline,
+                                                        minHeight:
+                                                            MediaQuery.of(
+                                                              context,
+                                                            ).size.height,
+                                                        // padding: widget.padding,
+                                                      );
+                                                      return _buildEditorView(
+                                                        context: context,
+                                                        width:
+                                                            constraints
+                                                                .maxWidth,
+                                                        scripts: data,
+                                                      );
+                                                    },
+                                                  ),
+                                              loading:
+                                                  () => Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          color: Colors.green,
+                                                          strokeWidth: 0.3,
+                                                        ),
+                                                  ),
+                                              error:
+                                                  (e, _) => Column(
+                                                    children: [
+                                                      Icon(Icons.error),
+                                                      Text(e.toString()),
+                                                    ],
+                                                  ),
                                             ),
-                                          ),
-                                          margin: const EdgeInsets.only(
-                                            right: 15,
-                                            top: 10,
-                                            bottom: 10,
-                                          ),
-                                          width:
-                                              MediaQuery.of(
-                                                context,
-                                              ).size.width *
-                                              0.3,
-                                          height:
-                                              MediaQuery.of(
-                                                context,
-                                              ).size.height,
-                                          child: ListView.builder(
-                                            shrinkWrap: true,
-                                            itemCount: _comments.length,
-                                            itemBuilder: (context, index) {
-                                              return commentTile(
-                                                _comments[index].text,
-                                              );
-                                            },
+                                  ),
+                                  _comments.isEmpty
+                                      ? const SizedBox.shrink()
+                                      : Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
                                           ),
                                         ),
-                                  ],
-                                ),
-                                //   ) //  ],),
-                              ),
-                            ],
-                          ),
-                        )
-                        //MOBILE VERSION EDITOR OUTLOOK
-                        : Offstage(
-                          offstage: !isWebviewvisible,
-                          child: Column(
-                            children: [
-                              toolbar(),
-                              ProgressBars(
-                                label:
-                                    'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                                progress: totalInteractionProgress,
-                                color: Colors.blue,
-                              ),
-                              Container(height: 2, color: Colors.grey),
-                              ProgressBars(
-                                label:
-                                    'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                                progress: _videoProgress,
-                                color: Colors.blueAccent,
-                              ),
-                              Container(height: 2, color: Colors.grey),
-                              ProgressBars(
-                                label:
-                                    'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                                progress: _progress.toDouble(),
-                                color: Colors.lightBlue,
-                              ),
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  controller: mobileScrollController,
-                                  child: state.when(
-                                    data:
-                                        (data) => LayoutBuilder(
-                                          builder: (context, constraints) {
-                                            _initialContent = getQuillPage(
-                                              width: constraints.maxWidth,
-                                              quillJsScript: data,
-                                              fontFamily: _fontFamily,
-                                              backgroundColor: _backgroundColor,
-                                              encodedStyle: _encodedStyle,
-                                              hintTextPadding:
-                                                  const EdgeInsets.only(
-                                                    left: 20,
-                                                  ),
-                                              hintTextStyle: _hintTextStyle,
-                                              hintText: '',
-                                              textStyle: _editorTextStyle,
-                                              isEnabled: isEnabled,
-                                              hintTextAlign: TextAlign.start,
-                                              inputAction: InputAction.newline,
-                                              minHeight:
-                                                  MediaQuery.of(
-                                                    context,
-                                                  ).size.height,
-                                            );
-                                            return _buildEditorView(
-                                              context: context,
-                                              width: constraints.maxWidth,
-                                              scripts: data,
+                                        margin: const EdgeInsets.only(
+                                          right: 15,
+                                          top: 10,
+                                          bottom: 10,
+                                        ),
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                            0.3,
+                                        height:
+                                            MediaQuery.of(context).size.height,
+                                        child: ListView.builder(
+                                          shrinkWrap: true,
+                                          itemCount: _comments.length,
+                                          itemBuilder: (context, index) {
+                                            return commentTile(
+                                              _comments[index].text,
                                             );
                                           },
                                         ),
-                                    loading:
-                                        () => Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colors.green,
-                                            strokeWidth: 0.3,
-                                          ),
+                                      ),
+                                ],
+                              ),
+                              //   ) //  ],),
+                            ),
+                          ],
+                          // ),
+                        )
+                        //MOBILE VERSION EDITOR OUTLOOK
+                        :
+                        // Offstage(
+                        //   offstage: !isWebviewvisible,
+                        //   child:
+                        Column(
+                          children: [
+                            toolbar(),
+                            ProgressBars(
+                              label:
+                                  'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
+                              progress: totalInteractionProgress,
+                              color: Colors.blue,
+                            ),
+                            Container(height: 2, color: Colors.grey),
+                            ProgressBars(
+                              label:
+                                  'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
+                              progress: _videoProgress,
+                              color: Colors.blueAccent,
+                            ),
+                            Container(height: 2, color: Colors.grey),
+                            ProgressBars(
+                              label:
+                                  'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
+                              progress: _progress.toDouble(),
+                              color: Colors.lightBlue,
+                            ),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                controller: mobileScrollController,
+                                child: state.when(
+                                  data:
+                                      (data) => LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          _initialContent = getQuillPage(
+                                            width: constraints.maxWidth,
+                                            quillJsScript: data,
+                                            fontFamily: _fontFamily,
+                                            backgroundColor: _backgroundColor,
+                                            encodedStyle: _encodedStyle,
+                                            hintTextPadding:
+                                                const EdgeInsets.only(left: 20),
+                                            hintTextStyle: _hintTextStyle,
+                                            hintText: '',
+                                            textStyle: _editorTextStyle,
+                                            isEnabled: isEnabled,
+                                            hintTextAlign: TextAlign.start,
+                                            inputAction: InputAction.newline,
+                                            minHeight:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.height,
+                                          );
+                                          return _buildEditorView(
+                                            context: context,
+                                            width: constraints.maxWidth,
+                                            scripts: data,
+                                          );
+                                        },
+                                      ),
+                                  loading:
+                                      () => Center(
+                                        child: CircularProgressIndicator(
+                                          color: Colors.green,
+                                          strokeWidth: 0.3,
                                         ),
-                                    error:
-                                        (e, _) => Column(
-                                          children: [
-                                            Icon(Icons.error),
-                                            Text(e.toString()),
-                                          ],
-                                        ),
-                                  ),
+                                      ),
+                                  error:
+                                      (e, _) => Column(
+                                        children: [
+                                          Icon(Icons.error),
+                                          Text(e.toString()),
+                                        ],
+                                      ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
+                    // ),
                     //  ),
                   ],
                 );
@@ -662,10 +569,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             if (kIsWeb) {
               Future.delayed(const Duration(microseconds: 0)).then((value) {
                 widget.controller.enableEditor(isEnabled);
-                if (textContent.isNotEmpty) {
-                  // print('This is the textContent of the webview $textContent');
-                  setHtmlTextToEditor(textContent);
-                  // setScrollPosition(scrollPosition: metaData['scrollPosition']);
+                if (widget.editorContent.isNotEmpty) {
+                  setHtmlTextToEditor(widget.editorContent);
                 }
               });
             }
@@ -681,13 +586,12 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 setState(() {});
               }
               widget.controller.enableEditor(isEnabled);
-              if (textContent.isNotEmpty) {
-                setHtmlTextToEditor(textContent);
+              if (widget.editorContent.isNotEmpty) {
+                setHtmlTextToEditor(widget.editorContent);
               }
               if (autofocus == true) {
                 widget.controller.focus();
               }
-              widget.controller.editorLoadedController?.add('');
             });
           },
           dartCallBacks: {
@@ -762,10 +666,15 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 if (message != null) {
                   //I CAN SEND IT TO THIS PLACE FROM THE DATA LAYER...
                   if (kIsWeb) {
-                    setScrollPosition(scrollPosition: 1000.0);
+                    print(
+                      "Scroll is reading because all the data has been loaded",
+                    );
+                    setScrollPosition(
+                      scrollPosition: widget.metaDataTotal['scrollPosition'],
+                    );
                     setVideoPosition(
                       //TODO: Get the List of videos coming from cloud Firestore and update it here.
-                      videos: metaData,
+                      videos: widget.metaData,
                     );
                   }
                 }
@@ -844,23 +753,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   setState(() {
                     selectedTextlength = sel.length ?? 0;
                     selectedTextPosition = sel.index ?? 0;
-                    print('This is testing selectionRnage $selectedTextlength');
-                    print(
-                      'This is testing selectedIndex $selectedTextPosition',
-                    );
                   });
-
-                  // if (widget.onSelectionChanged != null) {
-                  //   if (!_hasFocus) {
-                  //     if (widget.onFocusChanged != null) {
-                  //       _hasFocus = true;
-                  //       widget.onFocusChanged!(_hasFocus);
-                  //     }
-                  //   }
-                  //   widget.onSelectionChanged!(selection != null
-                  //       ? SelectionModel.fromJson(jsonDecode(selection))
-                  //       : SelectionModel(index: 0, length: 0));
-                  // }
                 } catch (e) {
                   if (!kReleaseMode) {
                     debugPrint(e.toString());
@@ -876,7 +769,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 _editorLoaded = true;
                 if (mounted) {
                   setState(() {});
-                  print('This is the editorLoaded function which is $map');
                 }
               },
             ),
@@ -894,26 +786,30 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                       setState(() {
                         // From here I can get the current Position and then pass
                         // it to the Map
+                        // print(
+                        //   "This is the Flutter side taking the videos $timing",
+                        // );
                         videoProgressMap[video.videoUrl] =
                             video.currentPosition;
                         totalProgressMap[video.videoUrl] =
                             video.currentPosition;
                         // _updateTotalVideoProgress();
+                        print(videoProgressMap);
                         _getTotalProgress();
                         //THE ESSENCE OF THE CONTROLLER MAP IS FOR RESUMPTION
                         //FROM WHERE THE VIDEO LEFT OFF
                         //   singleVideoDuration = video.totalDuration;
 
-                        print(videoProgressMap);
+                        //  print(videoProgressMap);
                       });
-                      ref
-                          .read(paramsUpateControllerProvider.notifier)
-                          .updateCurrentVideoProgress(
-                            articleID: '',
-                            videoUrl: video.videoUrl,
-                            currentPosition: video.currentPosition,
-                            //  singleVideoDuration: singleVideoDuration,
-                          );
+
+                      //TODO: Testting it
+                      widget.updateCurrentVideoProgress({
+                        'articleID': '',
+                        'videoUrl': video.videoUrl,
+                        'currentPosition': video.currentPosition,
+                      });
+
                       totalVideoProgressController.add(videoProgressMap);
                     }
                   }
@@ -960,11 +856,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                         //  _getTotalProgress();
                       });
                     } else {
-                      setState(() {
-                        print(
-                          'This is the currentPosition of the scroll ${p0.currentPosition}',
-                        );
-                      });
+                      // setState(() {});
                     }
                   }
                 } catch (e) {
@@ -985,10 +877,27 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     if (kIsWeb) {
                       //INITIALLY PLANNED TO USE THIS FOR VIDEO SAVING
                     } else {
-                      if (videoUrlLink.contains('youtube')) {
-                        showdialog(context, videoUrlLink);
+                      if (videoUrlLink.contains("https://") &&
+                          !videoUrlLink.contains("youtube")) {
+                        String url = videoUrlLink.replaceFirst(
+                          "https://",
+                          "http://",
+                        );
+                        shownormalVideoDialog(context, url);
                       } else {
                         shownormalVideoDialog(context, videoUrlLink);
+                      }
+
+                      if (videoUrlLink.contains('youtube')) {
+                        if (videoUrlLink.contains("?enablejsapi=1")) {
+                          String url = videoUrlLink.replaceFirst(
+                            "?enablejsapi=1",
+                            "",
+                          );
+                          showdialog(context, url);
+                        } else {
+                          showdialog(context, videoUrlLink);
+                        }
                       }
                     }
                   }
@@ -1004,28 +913,50 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   if (message != null) {
                     String videolink = message.toString();
                     //  widget.watchedVideo!(message.toString());
-
                     if (kIsWeb) {
                     } else {
+                      //MOBILE SESSION VIDEO UPDATE AT THE LOADING TIME
                       setState(() {
                         //TODO: There should be a condition to check if the videoLink is thesame as the one sent
                         //from the firebase; then it will update that particular video
-                        //Something like; list of videos coming from backend; where the videolink is thesame with the videos.videourl
+                        //Something like; list of videos coming from backend;
+                        //where the videolink is thesame with the videos.videourl
                         //Then update the video with the duration
-                        videoProgressMap[videolink] = 60070;
-                        totalProgressMap[videolink] = 60070;
+
+                        ///This should assign the whole Video Duration to this values
+
+                        if (videolink.contains("https") &&
+                            !videolink.contains("youtube")) {
+                          print("The videolink has https");
+                          String url = videolink.replaceFirst(
+                            "https://",
+                            "http://",
+                          );
+                          print(url);
+                          videoProgressMap[url] = widget.videoDurationData[url];
+                          totalProgressMap[url] = widget.videoDurationData[url];
+                        } else if (videolink.contains("?enablejsapi=1")) {
+                          String url = videolink.replaceFirst(
+                            "?enablejsapi=1",
+                            "",
+                          );
+                          videoProgressMap[url] = widget.videoDurationData[url];
+                          totalProgressMap[url] = widget.videoDurationData[url];
+                        } else {
+                          widget.videoDurationData[videolink];
+                          videoProgressMap[videolink] =
+                              widget.videoDurationData[videolink];
+                          totalProgressMap[videolink] =
+                              widget.videoDurationData[videolink];
+                        }
+                        // print(videolink);
+                        // print(widget.videoDurationData);
+                        // print(videoProgressMap);
                         //  _updateTotalVideoProgress();
                         _getTotalProgress();
-                        print(videoProgressMap);
-
-                        //THIS SHOULD BE THAT THE CONTROLLERMAP IS NOW AT THE END
-                        //OF THE VIDEO
-                        //SO WHEN IT IS RESUMED, IT WILL START FROM THE BEGIIING
-                        // controllerMap[videolink] = const Duration(
-                        //   milliseconds: 60070,
-                        // );
+                        // print(videoProgressMap);
+                        totalVideoProgressController.add(videoProgressMap);
                       });
-                      totalVideoProgressController.add(videoProgressMap);
                     }
                   }
                 } catch (e) {
@@ -1096,16 +1027,32 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     //scrollPosition.
     setState(() {
       // [totalProgressMap] contains the scrollPosition and the video Data.
+      // print("######################calling get Total Progress");
       totalInteractionProgress =
           (totalProgressMap.values.fold(
             0.0,
             (sum, progressTtotal) => sum + progressTtotal,
           )) /
-          (videosTotalDuration + scrollength.toDouble());
-      ref
-          .read(paramsUpateControllerProvider.notifier)
-          .updateTotalProgress(totalProgressMap);
+          (widget.videosTotalDuration + scrollength.toDouble());
+
+      //TODO:Testing it
+      widget.updateTotalProgress(totalProgressMap, totalInteractionProgress);
+      // ref
+      //     .read(paramsUpateControllerProvider.notifier)
+      //     .updateTotalProgress(totalProgressMap);
     });
+  }
+
+  void _waitAndJumptoSavedScrollPostion() async {
+    while (mobileScrollController.hasClients &&
+        mobileScrollController.position.maxScrollExtent == 0.0) {
+      await Future.delayed(Duration(seconds: 1));
+    }
+    final scrollLength = mobileScrollController.position.maxScrollExtent;
+    final scrollRatio = widget.metaDataTotal['scrollPosition'] ?? 0.0;
+    final targetPosition = scrollLength * scrollRatio;
+    mobileScrollController.jumpTo(targetPosition);
+    // print("✅ Jumped to saved scroll position: $targetPosition");
   }
 
   // Listen to changes in the scroll position
@@ -1129,7 +1076,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 0.0,
                 (sum, progress) => sum + progress,
               ) /
-              videosTotalDuration);
+              widget.videosTotalDuration);
+      widget.getVideosUpdates(videoProgressMap, widget.videoDurationData);
     } else {
       _videoProgress = 0.0;
     }
@@ -1141,11 +1089,11 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       barrierDismissible: false,
       context: context,
       builder: (context) {
-        return MobileYoutubeVideoWidget(
+       return MobileYoutubeVideoWidget(
           //I want to pass duration to start back where the video stops
           positioning:
-              metaData.containsKey(youtubeLink)
-                  ? Duration(milliseconds: metaData[youtubeLink])
+              widget.metaData.containsKey(youtubeLink)
+                  ? Duration(milliseconds: widget.metaData[youtubeLink])
                   : Duration.zero,
           videoUrl: youtubeLink,
           durationRation: (duration) {
@@ -1162,16 +1110,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               totalProgressMap[youtubeLink] = currentPosition.inMilliseconds;
               //UPDATING THE CLOUD FIRESTORE WHEN PLAYING YOUTUBE VIDEO ON MOBILE
               //TODO: Try it if it is not inside the setstate.
-              ref
-                  .read(paramsUpateControllerProvider.notifier)
-                  .updateCurrentVideoProgress(
-                    articleID: '',
-                    videoUrl: youtubeLink,
-                    currentPosition: currentPosition.inMilliseconds,
-                    //   singleVideoDuration: singleVideoDuration,
-                  );
-              // _updateTotalVideoProgress();
-              print(videoProgressMap);
+
+              //TODO: Testing it
+              widget.updateCurrentVideoProgress({
+                'articleID': '',
+                'videoUrl': youtubeLink,
+                'currentPosition': currentPosition.inMilliseconds,
+              });
               _getTotalProgress();
             });
             totalVideoProgressController.add(videoProgressMap);
@@ -1193,8 +1138,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             type: MaterialType.transparency,
             child: VideoWidget(
               positioning:
-                  metaData.containsKey(videolink)
-                      ? Duration(milliseconds: metaData[videolink])
+                  widget.metaData.containsKey(videolink)
+                      ? Duration(milliseconds: widget.metaData[videolink])
                       : Duration.zero,
               videoUrl: videolink,
               videoDuration: (videoduration) {
@@ -1210,16 +1155,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   totalProgressMap[videolink] = currentTime.inMilliseconds;
                   //UPDATING THE CLOUD FIRESTORE WHEN PLAYING NORMALS VIDEO ON MOBILE
                   //TODO:Try it if it is not inside the setstate function.
-                  ref
-                      .read(paramsUpateControllerProvider.notifier)
-                      .updateCurrentVideoProgress(
-                        articleID: '',
-                        videoUrl: videolink,
-                        currentPosition: currentTime.inMilliseconds,
-                        //  singleVideoDuration: singleVideoDuration,
-                      );
-                  //  _updateTotalVideoProgress();
-                  print(videoProgressMap);
+
+                  //TODO: Testing it
+                  widget.updateCurrentVideoProgress({
+                    'articleID': '',
+                    'videoUrl': videolink,
+                    'currentPosition': currentTime.inMilliseconds,
+                  });
                   _getTotalProgress();
                 });
                 totalVideoProgressController.add(videoProgressMap);
@@ -1544,13 +1486,11 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// a private method to undo the history
   Future _undo() async {
-    print('This is calling the undo function');
     return await _webviewController.callJsMethod("undo", []);
   }
 
   /// a private method to redo the history
   Future _redo() async {
-    print('This is calling the redo function');
     return await _webviewController.callJsMethod("redo", []);
   }
 
@@ -1566,9 +1506,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// set the savedScrollPosition to load the pre-existing web Position
   Future _setScrollPosition({required double scrollPosition}) async {
-    print(
-      'calling the setScrollPositionn@@@@@@@@@@@@@@@@@@@@@@@@ $scrollPosition',
-    );
     return await _webviewController.callJsMethod("setScrollPosition", [
       scrollPosition,
     ]);

@@ -408,5 +408,127 @@ class _VideoTotalDurationProviderElement extends AutoDisposeProviderElement<int>
   int get index => (origin as VideoTotalDurationProvider).index;
 }
 
+String _$getVideoDurationsHash() => r'1572620bb4ea1efd48da1dc60b72615456dc79b3';
+
+/// See also [getVideoDurations].
+@ProviderFor(getVideoDurations)
+const getVideoDurationsProvider = GetVideoDurationsFamily();
+
+/// See also [getVideoDurations].
+class GetVideoDurationsFamily extends Family<Map<String, dynamic>> {
+  /// See also [getVideoDurations].
+  const GetVideoDurationsFamily();
+
+  /// See also [getVideoDurations].
+  GetVideoDurationsProvider call(int index) {
+    return GetVideoDurationsProvider(index);
+  }
+
+  @override
+  GetVideoDurationsProvider getProviderOverride(
+    covariant GetVideoDurationsProvider provider,
+  ) {
+    return call(provider.index);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'getVideoDurationsProvider';
+}
+
+/// See also [getVideoDurations].
+class GetVideoDurationsProvider
+    extends AutoDisposeProvider<Map<String, dynamic>> {
+  /// See also [getVideoDurations].
+  GetVideoDurationsProvider(int index)
+    : this._internal(
+        (ref) => getVideoDurations(ref as GetVideoDurationsRef, index),
+        from: getVideoDurationsProvider,
+        name: r'getVideoDurationsProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$getVideoDurationsHash,
+        dependencies: GetVideoDurationsFamily._dependencies,
+        allTransitiveDependencies:
+            GetVideoDurationsFamily._allTransitiveDependencies,
+        index: index,
+      );
+
+  GetVideoDurationsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.index,
+  }) : super.internal();
+
+  final int index;
+
+  @override
+  Override overrideWith(
+    Map<String, dynamic> Function(GetVideoDurationsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: GetVideoDurationsProvider._internal(
+        (ref) => create(ref as GetVideoDurationsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        index: index,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeProviderElement<Map<String, dynamic>> createElement() {
+    return _GetVideoDurationsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GetVideoDurationsProvider && other.index == index;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, index.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin GetVideoDurationsRef on AutoDisposeProviderRef<Map<String, dynamic>> {
+  /// The parameter `index` of this provider.
+  int get index;
+}
+
+class _GetVideoDurationsProviderElement
+    extends AutoDisposeProviderElement<Map<String, dynamic>>
+    with GetVideoDurationsRef {
+  _GetVideoDurationsProviderElement(super.provider);
+
+  @override
+  int get index => (origin as GetVideoDurationsProvider).index;
+}
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -1,4 +1,3 @@
-import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -318,7 +317,6 @@ class EditorRepository {
             var tempText = "";
             var observer = new MutationObserver(function(mutations) {
                  var text = quilleditor.root.innerHTML; 
-                 console.log('#################testing the mutation observers!!!')
                  if(text != tempText){
                       tempText = text;
                       console.log(`\${text}`);
@@ -455,13 +453,6 @@ class EditorRepository {
               OnSelectionChanged.postMessage(getSelectionRange());
               }                
             });   
-
-      //       function setScrollPosition(savedScrollPosition){
-      //       console.log('#################################ScrollPosition being set');
-      //      if(savedScrollPosition != null) {
-      //       window.scrollTo(0, parseInt(savedScrollPosition, 10));
-      //   }
-      //  } 
 
             function getSelectionHtml() {
            var selection = quilleditor.getSelection(true);
