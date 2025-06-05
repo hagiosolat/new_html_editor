@@ -104,9 +104,24 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
     }
   }
 
+  void saveProgress() {
+    ref
+        .read(saveProgressProvider.notifier)
+        .saveArticleProgress(
+          articleID: articleID,
+          articleData: editorContent,
+          videoMetaData: videoMetaData,
+          videosDurationsData: videosDurationsData,
+          scrollProgress: scrollProgress,
+          totalProgress: totalProgress,
+          videosTotalDuration: videoTotalDuration,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final articleList = ref.watch(htmlContentControllerProvider);
+    final result = ref.watch(saveProgressProvider);
     return Scaffold(
       body: PopScope(
         canPop: false,
@@ -114,6 +129,7 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
           setState(() {
             isWebviewvisible = false;
             saveArticleProgress();
+            saveProgress();
           });
         },
 
@@ -130,6 +146,9 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                 itemBuilder: (contexclt, index) {
                   return GestureDetector(
                     onTap: () {
+                      print(
+                        "################################################################### This is the result I am watching now ${result.length}",
+                      );
                       setState(() {
                         //Check if the selected article is available in the saved list
                         if (savedData.any(

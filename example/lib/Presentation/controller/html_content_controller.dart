@@ -53,3 +53,55 @@ class ParamsUpateController extends _$ParamsUpateController {
 //FROM THIS POINT IT WILL REQUIRES THAT I SORTED THE MAP TYPE BY
 //1. HAVING THE LAST SCROLL POSITION IN THE MAP WITH THE
 //2. VIDEO DATA: BASICALLY THE VIDEO URL AND THE LAST SAVED DURATION.
+
+@riverpod
+class SaveProgress extends _$SaveProgress {
+  @override
+  List<HtmlData> build() {
+    return [];
+  }
+
+  void saveArticleProgress({
+    required String articleID,
+    required String articleData,
+    required Map<String, dynamic> videoMetaData,
+    required Map<String, dynamic> videosDurationsData,
+    required num scrollProgress,
+    required num totalProgress,
+    required num videosTotalDuration,
+  }) {
+    final videos =
+        videoMetaData.keys
+            .where((key) => videosDurationsData.containsKey(key))
+            .map(
+              (key) => Video(
+                videoUrl: key,
+                savedDuration: videoMetaData[key]!,
+                videoDuration: videosDurationsData[key]!,
+              ),
+            )
+            .toList();
+
+    final savingData = HtmlData(
+      articleData: articleData,
+      articleID: articleID,
+      videos: videos,
+      videosTotalDuration: videosTotalDuration,
+      scrollProgress: scrollProgress,
+      totalProgress: totalProgress,
+    );
+
+    //  print(savingData);
+
+    final articleIndex = state.indexWhere(
+      (article) => article.articleID == savingData.articleID,
+    );
+    if (articleIndex > -1) {
+      final updatedList = [...state];
+      updatedList[articleIndex] = savingData;
+      state = updatedList;
+    } else {
+      state = [...state, savingData];
+    }
+  }
+}

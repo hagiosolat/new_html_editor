@@ -10,6 +10,8 @@ class HtmlRepo {
 
   List<HtmlData> getHtmlList() {
     //FUNCTION TO ACCESS FIREBASE TO GET THE ARTICLES
+    //TODO: CONVERT ALL HTTP VIDEO LINK PROTOCOLS TO HTTPS
+    //FOR SMOOTH RENDERING ON IOS PLATFORMS
     return content;
   }
 

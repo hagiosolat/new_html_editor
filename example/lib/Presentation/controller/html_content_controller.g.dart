@@ -42,5 +42,22 @@ final paramsUpateControllerProvider =
     );
 
 typedef _$ParamsUpateController = AutoDisposeNotifier<void>;
+String _$saveProgressHash() => r'bc85fcaac003d5e73b23ed901f6f6bfc4a4aa12f';
+
+/// See also [SaveProgress].
+@ProviderFor(SaveProgress)
+final saveProgressProvider =
+    AutoDisposeNotifierProvider<SaveProgress, List<HtmlData>>.internal(
+      SaveProgress.new,
+      name: r'saveProgressProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$saveProgressHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$SaveProgress = AutoDisposeNotifier<List<HtmlData>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

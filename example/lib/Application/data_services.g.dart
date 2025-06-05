@@ -408,7 +408,7 @@ class _VideoTotalDurationProviderElement extends AutoDisposeProviderElement<int>
   int get index => (origin as VideoTotalDurationProvider).index;
 }
 
-String _$getVideoDurationsHash() => r'1572620bb4ea1efd48da1dc60b72615456dc79b3';
+String _$getVideoDurationsHash() => r'7e13b2436d2450d83a4f001b098f9572aa22df17';
 
 /// See also [getVideoDurations].
 @ProviderFor(getVideoDurations)
