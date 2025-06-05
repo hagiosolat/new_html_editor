@@ -93,6 +93,7 @@ class _MobileYoutubeVideoWidgetState extends State<MobileYoutubeVideoWidget>
                       widget.videoDuration(_youtubecontroller.value.position);
                     });
                     Navigator.pop(context);
+                 //   Navigator.pop(context);
                   },
                   icon: const Icon(Icons.cancel, size: 35, color: Colors.white),
                 ),

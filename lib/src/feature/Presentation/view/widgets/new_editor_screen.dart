@@ -183,8 +183,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   void dispose() {
-    scrollController.dispose();
-    progressController.close();
+//    scrollController.dispose();
+ //   progressController.close();
     widget.controller.dispose();
     super.dispose();
   }
@@ -877,17 +877,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     if (kIsWeb) {
                       //INITIALLY PLANNED TO USE THIS FOR VIDEO SAVING
                     } else {
-                      if (videoUrlLink.contains("https://") &&
-                          !videoUrlLink.contains("youtube")) {
-                        String url = videoUrlLink.replaceFirst(
-                          "https://",
-                          "http://",
-                        );
-                        shownormalVideoDialog(context, url);
-                      } else {
-                        shownormalVideoDialog(context, videoUrlLink);
-                      }
-
                       if (videoUrlLink.contains('youtube')) {
                         if (videoUrlLink.contains("?enablejsapi=1")) {
                           String url = videoUrlLink.replaceFirst(
@@ -898,6 +887,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                         } else {
                           showdialog(context, videoUrlLink);
                         }
+                      } else {
+                        shownormalVideoDialog(context, videoUrlLink);
                       }
                     }
                   }
@@ -918,41 +909,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                       //MOBILE SESSION VIDEO UPDATE AT THE LOADING TIME
                       setState(() {
                         //TODO: There should be a condition to check if the videoLink is thesame as the one sent
-                        //from the firebase; then it will update that particular video
-                        //Something like; list of videos coming from backend;
-                        //where the videolink is thesame with the videos.videourl
-                        //Then update the video with the duration
 
-                        ///This should assign the whole Video Duration to this values
-
-                        if (videolink.contains("https") &&
-                            !videolink.contains("youtube")) {
-                          print("The videolink has https");
-                          String url = videolink.replaceFirst(
-                            "https://",
-                            "http://",
-                          );
-                          print(url);
-                          videoProgressMap[url] = widget.videoDurationData[url];
-                          totalProgressMap[url] = widget.videoDurationData[url];
-                        } else if (videolink.contains("?enablejsapi=1")) {
-                          String url = videolink.replaceFirst(
-                            "?enablejsapi=1",
-                            "",
-                          );
-                          videoProgressMap[url] = widget.videoDurationData[url];
-                          totalProgressMap[url] = widget.videoDurationData[url];
-                        } else {
-                          widget.videoDurationData[videolink];
-                          videoProgressMap[videolink] =
-                              widget.videoDurationData[videolink];
-                          totalProgressMap[videolink] =
-                              widget.videoDurationData[videolink];
-                        }
-                        // print(videolink);
-                        // print(widget.videoDurationData);
-                        // print(videoProgressMap);
-                        //  _updateTotalVideoProgress();
+                        widget.videoDurationData[videolink];
+                        videoProgressMap[videolink] =
+                            widget.videoDurationData[videolink];
+                        totalProgressMap[videolink] =
+                            widget.videoDurationData[videolink];
+                        // }
                         _getTotalProgress();
                         // print(videoProgressMap);
                         totalVideoProgressController.add(videoProgressMap);
@@ -1089,7 +1052,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       barrierDismissible: false,
       context: context,
       builder: (context) {
-       return MobileYoutubeVideoWidget(
+        return MobileYoutubeVideoWidget(
           //I want to pass duration to start back where the video stops
           positioning:
               widget.metaData.containsKey(youtubeLink)
