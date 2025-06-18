@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:new_html_editor/new_html_editor.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/mobile_youtube_video.dart';
@@ -13,7 +14,6 @@ import '../../../../core/edit_table_drop_down.dart';
 import '../../../../core/webviewx/src/models/scroll_position.dart';
 import '../../../../core/webviewx/src/models/selection_model.dart';
 import '../../../../core/webviewx/src/models/video_progress.dart';
-
 // ignore: must_be_immutable
 class NewEditorScreen extends ConsumerStatefulWidget
     with WidgetsBindingObserver {
@@ -147,28 +147,41 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     // _currentHeight = MediaQuery.of(context).size.height;
     _fontFamily = _editorTextStyle.fontFamily ?? 'Roboto';
     _encodedStyle = Uri.encodeFull(_fontFamily);
-    mobileScrollController.addListener(_onScroll);
-
-    // widget.controller.onTextChanged((testi) {
-    //   debugPrint('listening to $testi');
-    //   if (editorEnable) {
-    //     if (kIsWeb) {
-    //       setVideoPosition(videos: widget.metaData);
-    //       setState(() {
-    //         editorEnable = false;
-    //       });
-    //     }
-
+    if (kIsWeb && widget.isOutSideEditor) {
+      SchedulerBinding.instance.scheduleFrameCallback((_) {
+       // setHtmlTextToEditor(widget.editorContent);
+        setState(() {
+          videoProgressMap.clear();
+          totalProgressMap.clear();
+          videoProgressMap = widget.metaData;
+          totalProgressMap = widget.metaDataTotal;
+          _updateTotalVideoProgress();
+          _getTotalProgress();
+          // _waitAndJumptoSavedScrollPostion();
+          widget.isOutSideEditor = false;
+        });
+      });
+    }
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (kIsWeb && widget.isOutSideEditor) {
+    //     setHtmlTextToEditor(widget.editorContent);
+    //     setState(() {
+    //       videoProgressMap.clear();
+    //       totalProgressMap.clear();
+    //       videoProgressMap = widget.metaData;
+    //       totalProgressMap = widget.metaDataTotal;
+    //       _updateTotalVideoProgress();
+    //       _getTotalProgress();
+    //       widget.isOutSideEditor = false;
+    //     });
     //   }
     // });
-
+    mobileScrollController.addListener(_onScroll);
     //CONTROLLER FOR TOTALPROGRESS
-
     //CONTROLLER FOR ARTICLE VIDEO PROGRESS
     totalVideoProgressController.stream.listen((event) {
       _updateTotalVideoProgress();
     });
-
     //ENABLE THE STREAM CONTROLLER TO LISTEN FOR DATA UPDATES
     progressController.stream.listen((event) {
       setState(() {
@@ -183,12 +196,11 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   void dispose() {
-//    scrollController.dispose();
- //   progressController.close();
+    //    scrollController.dispose();
+    //   progressController.close();
     widget.controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(editorControllerProvider);
@@ -479,7 +491,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               },
             ),
           ),
-
           bottomNavigationBar:
               kIsWeb
                   ? selectedTextlength >= 1
@@ -666,9 +677,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 if (message != null) {
                   //I CAN SEND IT TO THIS PLACE FROM THE DATA LAYER...
                   if (kIsWeb) {
-                    print(
-                      "Scroll is reading because all the data has been loaded",
-                    );
                     setScrollPosition(
                       scrollPosition: widget.metaDataTotal['scrollPosition'],
                     );
@@ -794,22 +802,18 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                         totalProgressMap[video.videoUrl] =
                             video.currentPosition;
                         // _updateTotalVideoProgress();
-                        print(videoProgressMap);
                         _getTotalProgress();
                         //THE ESSENCE OF THE CONTROLLER MAP IS FOR RESUMPTION
                         //FROM WHERE THE VIDEO LEFT OFF
                         //   singleVideoDuration = video.totalDuration;
-
                         //  print(videoProgressMap);
                       });
-
                       //TODO: Testting it
                       widget.updateCurrentVideoProgress({
                         'articleID': '',
                         'videoUrl': video.videoUrl,
                         'currentPosition': video.currentPosition,
                       });
-
                       totalVideoProgressController.add(videoProgressMap);
                     }
                   }
@@ -909,7 +913,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                       //MOBILE SESSION VIDEO UPDATE AT THE LOADING TIME
                       setState(() {
                         //TODO: There should be a condition to check if the videoLink is thesame as the one sent
-
                         widget.videoDurationData[videolink];
                         videoProgressMap[videolink] =
                             widget.videoDurationData[videolink];
@@ -990,14 +993,12 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     //scrollPosition.
     setState(() {
       // [totalProgressMap] contains the scrollPosition and the video Data.
-      // print("######################calling get Total Progress");
       totalInteractionProgress =
           (totalProgressMap.values.fold(
             0.0,
             (sum, progressTtotal) => sum + progressTtotal,
           )) /
           (widget.videosTotalDuration + scrollength.toDouble());
-
       //TODO:Testing it
       widget.updateTotalProgress(totalProgressMap, totalInteractionProgress);
       // ref
@@ -1073,7 +1074,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               totalProgressMap[youtubeLink] = currentPosition.inMilliseconds;
               //UPDATING THE CLOUD FIRESTORE WHEN PLAYING YOUTUBE VIDEO ON MOBILE
               //TODO: Try it if it is not inside the setstate.
-
               //TODO: Testing it
               widget.updateCurrentVideoProgress({
                 'articleID': '',
@@ -1118,7 +1118,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   totalProgressMap[videolink] = currentTime.inMilliseconds;
                   //UPDATING THE CLOUD FIRESTORE WHEN PLAYING NORMALS VIDEO ON MOBILE
                   //TODO:Try it if it is not inside the setstate function.
-
                   //TODO: Testing it
                   widget.updateCurrentVideoProgress({
                     'articleID': '',

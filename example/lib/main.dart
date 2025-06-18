@@ -146,9 +146,6 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                 itemBuilder: (contexclt, index) {
                   return GestureDetector(
                     onTap: () {
-                      print(
-                        "################################################################### This is the result I am watching now ${result.length}",
-                      );
                       setState(() {
                         //Check if the selected article is available in the saved list
                         if (savedData.any(
@@ -303,7 +300,8 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                 )
                 //THIS IS FOR THE WEB VERSION IN RENDERING THE EDITOR.
                 : Visibility(
-                  visible: isWebviewvisible,
+                  //offstage: !isWebviewvisible,
+                   visible: isWebviewvisible,
                   child: NewEditorScreen(
                     controller: controller,
                     editorContent: editorContent,

@@ -38,7 +38,11 @@ Map<String, dynamic> mobileDataServices(Ref ref, int index) {
   if (data[index].videos?.isNotEmpty == true) {
     params['scrollPosition'] = data[index].scrollProgress;
     for (final video in data[index].videos!) {
-      params[video.videoUrl!] = video.savedDuration;
+      if (video.videoUrl?.contains('youtube') == true) {
+        params['${video.videoUrl}?enablejsapi=1'] = video.savedDuration;
+      } else {
+        params[video.videoUrl!] = video.savedDuration;
+      }
     }
   }
   return params;
@@ -61,7 +65,7 @@ Map<String, dynamic> getVideoDurations(Ref ref, int index) {
         if (video.videoUrl?.contains('youtube') == true) {
           params['${video.videoUrl}?enablejsapi=1'] = video.videoDuration;
         } else {
-           params[video.videoUrl!] = video.videoDuration;
+          params[video.videoUrl!] = video.videoDuration;
         }
       } else {
         params[video.videoUrl!] = video.videoDuration;
