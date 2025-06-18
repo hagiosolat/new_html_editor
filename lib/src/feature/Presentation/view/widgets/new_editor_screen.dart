@@ -14,6 +14,7 @@ import '../../../../core/edit_table_drop_down.dart';
 import '../../../../core/webviewx/src/models/scroll_position.dart';
 import '../../../../core/webviewx/src/models/selection_model.dart';
 import '../../../../core/webviewx/src/models/video_progress.dart';
+
 // ignore: must_be_immutable
 class NewEditorScreen extends ConsumerStatefulWidget
     with WidgetsBindingObserver {
@@ -149,7 +150,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     _encodedStyle = Uri.encodeFull(_fontFamily);
     if (kIsWeb && widget.isOutSideEditor) {
       SchedulerBinding.instance.scheduleFrameCallback((_) {
-       // setHtmlTextToEditor(widget.editorContent);
+        // setHtmlTextToEditor(widget.editorContent);
         setState(() {
           videoProgressMap.clear();
           totalProgressMap.clear();
@@ -201,6 +202,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     widget.controller.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(editorControllerProvider);
@@ -405,11 +407,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                           // ),
                         )
                         //MOBILE VERSION EDITOR OUTLOOK
-                        :
-                        // Offstage(
-                        //   offstage: !isWebviewvisible,
-                        //   child:
-                        Column(
+                        : Column(
                           children: [
                             toolbar(),
                             ProgressBars(
@@ -484,8 +482,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                             ),
                           ],
                         ),
-                    // ),
-                    //  ),
                   ],
                 );
               },
