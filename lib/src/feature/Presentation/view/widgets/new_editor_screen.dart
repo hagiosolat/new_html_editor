@@ -141,6 +141,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   bool ensureVisible = false;
 
+  bool? isLoadingDone;
+
   late String _fontFamily;
 
   @override
@@ -152,6 +154,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       SchedulerBinding.instance.scheduleFrameCallback((_) {
         // setHtmlTextToEditor(widget.editorContent);
         setState(() {
+          isLoadingDone = false;
           videoProgressMap.clear();
           totalProgressMap.clear();
           videoProgressMap = widget.metaData;
@@ -163,20 +166,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
         });
       });
     }
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   if (kIsWeb && widget.isOutSideEditor) {
-    //     setHtmlTextToEditor(widget.editorContent);
-    //     setState(() {
-    //       videoProgressMap.clear();
-    //       totalProgressMap.clear();
-    //       videoProgressMap = widget.metaData;
-    //       totalProgressMap = widget.metaDataTotal;
-    //       _updateTotalVideoProgress();
-    //       _getTotalProgress();
-    //       widget.isOutSideEditor = false;
-    //     });
-    //   }
-    // });
     mobileScrollController.addListener(_onScroll);
     //CONTROLLER FOR TOTALPROGRESS
     //CONTROLLER FOR ARTICLE VIDEO PROGRESS
@@ -197,8 +186,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   void dispose() {
-    //    scrollController.dispose();
-    //   progressController.close();
     widget.controller.dispose();
     super.dispose();
   }
@@ -207,7 +194,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(editorControllerProvider);
     //SetScroll Position for the first Option
-    //  if (!kIsWeb && widget.isOutSideEditor) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!kIsWeb && widget.isOutSideEditor) {
         setHtmlTextToEditor(widget.editorContent);
@@ -223,8 +209,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
         });
       }
     });
-    //  }
-    // final state2 = ref.watch(htmlContentControllerProvider);
     return SafeArea(
       child: PopScope(
         canPop: false,
@@ -256,43 +240,43 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   : const SizedBox.shrink(),
           backgroundColor: Colors.white,
           resizeToAvoidBottomInset: true,
-          body: Container(
+          body: SizedBox(
             child: LayoutBuilder(
               builder: (context, constraint) {
                 return Stack(
                   children: [
                     kIsWeb
-                        //WEB VERSION EDITOR OUTLOOK
-                        ?
-                        //  Offstage(
-                        //   offstage: !isWebviewvisible,
-                        //   child:
-                        CustomScrollView(
+                        ? CustomScrollView(
                           slivers: [
                             SliverToBoxAdapter(
                               child: Column(
                                 children: [
                                   toolbar(),
-                                  ProgressBars(
-                                    label:
-                                        'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                                    progress: totalInteractionProgress,
-                                    color: Colors.blue,
-                                  ),
-                                  Container(height: 2, color: Colors.grey),
-                                  ProgressBars(
-                                    label:
-                                        'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                                    progress: _videoProgress,
-                                    color: Colors.blueAccent,
-                                  ),
-                                  Container(height: 2, color: Colors.grey),
-                                  ProgressBars(
-                                    label:
-                                        'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                                    progress: _progress.toDouble(),
-                                    color: Colors.lightBlue,
-                                  ),
+                                  if (isLoadingDone == true)
+                                    ProgressBars(
+                                      label:
+                                          'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
+                                      progress: totalInteractionProgress,
+                                      color: Colors.blue,
+                                    ),
+                                  if (isLoadingDone == true)
+                                    Container(height: 2, color: Colors.grey),
+                                  if (isLoadingDone == true)
+                                    ProgressBars(
+                                      label:
+                                          'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
+                                      progress: _videoProgress,
+                                      color: Colors.blueAccent,
+                                    ),
+                                  if (isLoadingDone == true)
+                                    Container(height: 2, color: Colors.grey),
+                                  if (isLoadingDone == true)
+                                    ProgressBars(
+                                      label:
+                                          'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
+                                      progress: _progress.toDouble(),
+                                      color: Colors.lightBlue,
+                                    ),
                                 ],
                               ),
                             ),
@@ -401,10 +385,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                       ),
                                 ],
                               ),
-                              //   ) //  ],),
                             ),
                           ],
-                          // ),
                         )
                         //MOBILE VERSION EDITOR OUTLOOK
                         : Column(
@@ -654,10 +636,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     } else {
                       finalText = map;
                     }
-                    //TODO: CHECKING OTHERS
-                    // if (widget.onTextChanged != null) {
-                    //   widget.onTextChanged!(finalText);
-                    // }
                     widget.controller.changeController!.add(finalText);
                   }
                 } catch (e) {
@@ -834,29 +812,23 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 }
               },
             ),
+            //THIS IS ONLY FOR THE WEB-VERSION, THE MOBILE SCROLLING
+            //IS HANDLED AT THE FLUTTER SIDE
             DartCallback(
               name: 'GetScrollPosition',
               callBack: (message) {
                 try {
-                  // print('This is the message from the scrollPosition $message');
                   if (message != null) {
                     var p0 = CustomScrollPosition.fromJson(jsonDecode(message));
                     if (kIsWeb) {
-                      // print(
-                      //     'scrollTop is ${p0.scrollTop}, currentPosition ${p0.currentPosition}');
                       setState(() {
                         //_progress = p0.currentPosition ?? 0.0;
                         scrollength = p0.maxScroll ?? 0.0;
-                        // print(
-                        //   'Maximum Scroll Position is ${p0.currentPosition}',
-                        // );
                         totalProgressMap['scrollPosition'] = p0.scrollTop;
                         //This is the stream that will be sending the progress to the backend.
                         progressController.add(p0.currentPosition ?? 0.0);
                         //  _getTotalProgress();
                       });
-                    } else {
-                      // setState(() {});
                     }
                   }
                 } catch (e) {
@@ -898,6 +870,20 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               },
             ),
             DartCallback(
+              name: 'IsLoadingDone',
+              callBack: (isloadingdone) {
+                try {
+                  if (isloadingdone != null) {
+                    if (kIsWeb) {
+                      setState(() {
+                        isLoadingDone = isloadingdone as bool;
+                      });
+                    }
+                  }
+                } catch (e) {}
+              },
+            ),
+            DartCallback(
               name: 'WatchVideo',
               callBack: (message) {
                 try {
@@ -933,6 +919,17 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
           ),
           //  navigationDelegate: widget.navigationDelegate,
         ),
+        if (isLoadingDone == false)
+          Stack(
+            children: [
+              ModalBarrier(dismissible: false, color: Colors.black54),
+              Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ],
+          ),
       ],
     );
   }
@@ -995,11 +992,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             (sum, progressTtotal) => sum + progressTtotal,
           )) /
           (widget.videosTotalDuration + scrollength.toDouble());
-      //TODO:Testing it
+      //A call back to be sent to the Main Application
       widget.updateTotalProgress(totalProgressMap, totalInteractionProgress);
-      // ref
-      //     .read(paramsUpateControllerProvider.notifier)
-      //     .updateTotalProgress(totalProgressMap);
     });
   }
 
@@ -1029,7 +1023,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   }
 
   void _updateTotalVideoProgress() {
-    //TODO:ideoProgressMap to be updated with the videoList data from backend upon loading.
+    //TODO:videoProgressMap to be updated with the videoList data from backend upon loading.
     if (videoProgressMap.isNotEmpty) {
       _videoProgress =
           (videoProgressMap.values.fold(

@@ -20,15 +20,21 @@ class ProgressBars extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           height: 12,
           decoration: BoxDecoration(
-              color: Colors.grey[300],
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(2)),
+            color: Colors.grey[300],
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
         Container(
           height: 12,
-          width: MediaQuery.of(context).size.width * progress,
+          width:
+              !progress.isNaN
+                  ? MediaQuery.of(context).size.width * progress
+                  : 0.0,
           decoration: BoxDecoration(
-              color: color, borderRadius: BorderRadius.circular(2)),
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),

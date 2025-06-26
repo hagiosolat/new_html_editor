@@ -102,8 +102,8 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
     } else {
       savedData.add(savingData);
     }
-  }
-
+  } 
+ //TO DO: ALSO A WORK IN PROGRESS
   void saveProgress() {
     ref
         .read(saveProgressProvider.notifier)
@@ -121,6 +121,7 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
   @override
   Widget build(BuildContext context) {
     final articleList = ref.watch(htmlContentControllerProvider);
+    //TO DO: WORK IN PROGRESS. TAKING APP STATE SAVING TO THE CONTROLLER CLASS LEVEL
     final result = ref.watch(saveProgressProvider);
     return Scaffold(
       body: PopScope(
@@ -300,8 +301,8 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                 )
                 //THIS IS FOR THE WEB VERSION IN RENDERING THE EDITOR.
                 : Visibility(
-                  //offstage: !isWebviewvisible,
-                   visible: isWebviewvisible,
+                  // offstage: !isWebviewvisible,
+                  visible: isWebviewvisible,
                   child: NewEditorScreen(
                     controller: controller,
                     editorContent: editorContent,

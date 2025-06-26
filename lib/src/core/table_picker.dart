@@ -1,5 +1,4 @@
 // ignore_for_file: unused_element
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'webviewx/src/utils/utils.dart';
@@ -130,7 +129,7 @@ class _CellSelectionWidget extends SingleChildRenderObjectWidget {
   final int index;
 
   const _CellSelectionWidget(
-      {required Widget super.child, required this.index, super.key});
+      {required Widget super.child, required this.index,});
 
   @override
   _CellBox createRenderObject(BuildContext context) {
