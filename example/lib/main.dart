@@ -227,7 +227,7 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Article Testing $index',
+                            articleList[index].title!,
                             style: TextStyle(
                               fontFamily: 'Time New Roman',
                               fontSize: 25,
