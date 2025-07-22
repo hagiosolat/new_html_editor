@@ -84,7 +84,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     fontWeight: FontWeight.normal,
   );
 
-  late WebViewXController _webviewController;
+  WebViewXController? _webviewController;
 
   final TextEditingController commentController = TextEditingController();
 
@@ -986,6 +986,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     //scrollPosition.
     setState(() {
       // [totalProgressMap] contains the scrollPosition and the video Data.
+      print('This is the totalInteractionProgress $totalProgressMap');
       totalInteractionProgress =
           (totalProgressMap.values.fold(
             0.0,
@@ -1310,32 +1311,32 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// a private method to get the Html text from the editor
   Future<String> _getHtmlFromEditor() async {
-    return await _webviewController.callJsMethod("getHtmlText", []);
+    return await _webviewController?.callJsMethod("getHtmlText", []);
   }
 
   /// a private method to get the Plain text from the editor
   Future<String> _getPlainTextFromEditor() async {
-    return await _webviewController.callJsMethod("getPlainText", []);
+    return await _webviewController?.callJsMethod("getPlainText", []);
   }
 
   /// a private method to get the delta  from the editor
   Future<String> _getDeltaFromEditor() async {
-    return await _webviewController.callJsMethod("getDelta", []);
+    return await _webviewController?.callJsMethod("getDelta", []);
   }
 
   /// a private method to check if editor has focus
   Future<int> _getSelectionCount() async {
-    return await _webviewController.callJsMethod("getSelection", []);
+    return await _webviewController?.callJsMethod("getSelection", []);
   }
 
   /// a private method to check if editor has focus
   Future<dynamic> _getSelectionRange() async {
-    return await _webviewController.callJsMethod("getSelectionRange", []);
+    return await _webviewController?.callJsMethod("getSelectionRange", []);
   }
 
   /// a private method to check if editor has focus
   Future<dynamic> _setSelectionRange(int index, int length) async {
-    return await _webviewController.callJsMethod("setSelection", [
+    return await _webviewController?.callJsMethod("setSelection", [
       index,
       length,
     ]);
@@ -1343,7 +1344,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// a private method to set the Html text to the editor
   Future _setHtmlTextToEditor({required String htmlText}) async {
-    return await _webviewController.callJsMethod("setHtmlText", [
+    return await _webviewController?.callJsMethod("setHtmlText", [
       htmlText,
       kIsWeb,
       isEnabled,
@@ -1352,24 +1353,24 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// a private method to set the Delta  text to the editor
   Future _setDeltaToEditor({required Map<dynamic, dynamic> deltaMap}) async {
-    return await _webviewController.callJsMethod("setDeltaContent", [
+    return await _webviewController?.callJsMethod("setDeltaContent", [
       jsonEncode(deltaMap),
     ]);
   }
 
   /// a private method to request focus to the editor
   Future _requestFocus() async {
-    return await _webviewController.callJsMethod("requestFocus", []);
+    return await _webviewController?.callJsMethod("requestFocus", []);
   }
 
   /// a private method to un focus the editor
   Future _unFocus() async {
-    return await _webviewController.callJsMethod("unFocus", []);
+    return await _webviewController?.callJsMethod("unFocus", []);
   }
 
   /// a private method to insert the Html text to the editor
   Future _insertHtmlTextToEditor({required String htmlText, int? index}) async {
-    return await _webviewController.callJsMethod("insertHtmlText", [
+    return await _webviewController?.callJsMethod("insertHtmlText", [
       htmlText,
       index,
     ]);
@@ -1377,17 +1378,17 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// a private method to embed the video to the editor
   Future _embedVideo({required String videoUrl}) async {
-    return await _webviewController.callJsMethod("embedVideo", [videoUrl]);
+    return await _webviewController?.callJsMethod("embedVideo", [videoUrl]);
   }
 
   /// a private method to embed the image to the editor
   Future _embedImage({required String imgSrc}) async {
-    return await _webviewController.callJsMethod("embedImage", [imgSrc]);
+    return await _webviewController?.callJsMethod("embedImage", [imgSrc]);
   }
 
   /// a private method to enable/disable the editor
   Future _enableTextEditor({required bool isEnabled}) async {
-    return await _webviewController.callJsMethod("enableEditor", [isEnabled]);
+    return await _webviewController?.callJsMethod("enableEditor", [isEnabled]);
   }
 
   /// a private method to enable/disable the editor
@@ -1398,7 +1399,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     int length = 0,
   }) async {
     try {
-      return await _webviewController.callJsMethod("setFormat", [
+      return await _webviewController?.callJsMethod("setFormat", [
         format,
         value,
         index,
@@ -1411,60 +1412,60 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// a private method to insert table by row and column to the editor
   Future _insertTableToEditor({required int row, required int column}) async {
-    return await _webviewController.callJsMethod("insertTable", [row, column]);
+    return await _webviewController?.callJsMethod("insertTable", [row, column]);
   }
 
   /// a private method to add remove or delete table in the editor
   Future _modifyTable(EditTableEnum type) async {
-    return await _webviewController.callJsMethod("modifyTable", [type.name]);
+    return await _webviewController?.callJsMethod("modifyTable", [type.name]);
   }
 
   /// a private method to replace selection text in the editor
   Future _replaceText(String replaceText) async {
-    return await _webviewController.callJsMethod("replaceSelection", [
+    return await _webviewController?.callJsMethod("replaceSelection", [
       replaceText,
     ]);
   }
 
   /// a private method to get the selected text from editor
   Future _getSelectedText() async {
-    return await _webviewController.callJsMethod("getSelectedText", []);
+    return await _webviewController?.callJsMethod("getSelectedText", []);
   }
 
   /// a private method to get the selected html text from editor
   Future _getSelectedHtmlText() async {
-    return await _webviewController.callJsMethod("getSelectionHtml", []);
+    return await _webviewController?.callJsMethod("getSelectionHtml", []);
   }
 
   /// a private method to undo the history
   Future _undo() async {
-    return await _webviewController.callJsMethod("undo", []);
+    return await _webviewController?.callJsMethod("undo", []);
   }
 
   /// a private method to redo the history
   Future _redo() async {
-    return await _webviewController.callJsMethod("redo", []);
+    return await _webviewController?.callJsMethod("redo", []);
   }
 
   /// a private method to clear the history stack
   Future _clearHistory() async {
-    return await _webviewController.callJsMethod("clearHistory", []);
+    return await _webviewController?.callJsMethod("clearHistory", []);
   }
 
   /// a formatted text upon selection
   Future _formatText() async {
-    return await _webviewController.callJsMethod("setFormatText", []);
+    return await _webviewController?.callJsMethod("setFormatText", []);
   }
 
   /// set the savedScrollPosition to load the pre-existing web Position
   Future _setScrollPosition({required double scrollPosition}) async {
-    return await _webviewController.callJsMethod("setScrollPosition", [
+    return await _webviewController?.callJsMethod("setScrollPosition", [
       scrollPosition,
     ]);
   }
 
   Future _setVideoPosition({required Map<String, dynamic> videos}) async {
-    return await _webviewController.callJsMethod("setVideoPosition", [
+    return await _webviewController?.callJsMethod("setVideoPosition", [
       jsonEncode(videos),
     ]);
   }
