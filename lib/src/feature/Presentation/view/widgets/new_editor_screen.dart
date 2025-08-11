@@ -210,333 +210,328 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       }
     });
     return SafeArea(
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPopUp, result) {},
-        child: Scaffold(
-          floatingActionButton:
-              selectedTextlength >= 1
-                  ? !kIsWeb
-                      ? ElevatedButton(
-                        onPressed: () async {
-                          final selection =
-                              await widget.controller.getSelectionRange();
-                          if (selection.length == 0) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Select text to comment on'),
-                              ),
-                            );
-                          } else {
-                            showModalSheetScreen(
-                              selectedTextPosition,
-                              selectedTextlength,
-                            );
-                          }
-                        },
-                        child: const Text('Add Comment'),
-                      )
-                      : const SizedBox.shrink()
-                  : const SizedBox.shrink(),
-          backgroundColor: Colors.white,
-          resizeToAvoidBottomInset: true,
-          body: SizedBox(
-            child: LayoutBuilder(
-              builder: (context, constraint) {
-                return Stack(
-                  children: [
-                    kIsWeb
-                        ? CustomScrollView(
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: Column(
-                                children: [
-                                  toolbar(),
-                                  if (isLoadingDone == true)
-                                    ProgressBars(
-                                      label:
-                                          'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                                      progress: totalInteractionProgress,
-                                      color: Colors.blue,
-                                    ),
-                                  if (isLoadingDone == true)
-                                    Container(height: 2, color: Colors.grey),
-                                  if (isLoadingDone == true)
-                                    ProgressBars(
-                                      label:
-                                          'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                                      progress: _videoProgress,
-                                      color: Colors.blueAccent,
-                                    ),
-                                  if (isLoadingDone == true)
-                                    Container(height: 2, color: Colors.grey),
-                                  if (isLoadingDone == true)
-                                    ProgressBars(
-                                      label:
-                                          'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                                      progress: _progress.toDouble(),
-                                      color: Colors.lightBlue,
-                                    ),
-                                ],
-                              ),
+      // child: PopScope(
+      //   canPop: false,
+      //   onPopInvokedWithResult: (didPopUp, result) {},
+      child: Scaffold(
+        floatingActionButton:
+            selectedTextlength >= 1
+                ? !kIsWeb
+                    ? ElevatedButton(
+                      onPressed: () async {
+                        final selection =
+                            await widget.controller.getSelectionRange();
+                        if (selection.length == 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Select text to comment on'),
                             ),
-                            SliverFillRemaining(
-                              child: Row(
-                                children: [
-                                  Flexible(
-                                    flex: 3,
-                                    child:
-                                        isLoading
-                                            ? const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            )
-                                            : state.when(
-                                              data:
-                                                  (data) => LayoutBuilder(
-                                                    builder: (
-                                                      context,
-                                                      constraints,
-                                                    ) {
-                                                      _initialContent = getQuillPage(
-                                                        width:
-                                                            constraints
-                                                                .maxWidth,
-                                                        quillJsScript: data,
-                                                        fontFamily: _fontFamily,
-                                                        backgroundColor:
-                                                            _backgroundColor,
-                                                        encodedStyle:
-                                                            _encodedStyle,
-                                                        hintTextPadding:
-                                                            const EdgeInsets.only(
-                                                              left: 20,
-                                                            ),
-                                                        hintTextStyle:
-                                                            _hintTextStyle,
-                                                        hintText: '',
-                                                        textStyle:
-                                                            _editorTextStyle,
-                                                        isEnabled: isEnabled,
-                                                        hintTextAlign:
-                                                            TextAlign.start,
-                                                        inputAction:
-                                                            InputAction.newline,
-                                                        minHeight:
-                                                            MediaQuery.of(
-                                                              context,
-                                                            ).size.height,
-                                                        // padding: widget.padding,
-                                                      );
-                                                      return _buildEditorView(
-                                                        context: context,
-                                                        width:
-                                                            constraints
-                                                                .maxWidth,
-                                                        scripts: data,
-                                                      );
-                                                    },
-                                                  ),
-                                              loading:
-                                                  () => Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          color: Colors.green,
-                                                          strokeWidth: 0.3,
-                                                        ),
-                                                  ),
-                                              error:
-                                                  (e, _) => Column(
-                                                    children: [
-                                                      Icon(Icons.error),
-                                                      Text(e.toString()),
-                                                    ],
-                                                  ),
-                                            ),
+                          );
+                        } else {
+                          showModalSheetScreen(
+                            selectedTextPosition,
+                            selectedTextlength,
+                          );
+                        }
+                      },
+                      child: const Text('Add Comment'),
+                    )
+                    : const SizedBox.shrink()
+                : const SizedBox.shrink(),
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: true,
+        body: SizedBox(
+          child: LayoutBuilder(
+            builder: (context, constraint) {
+              return Stack(
+                children: [
+                  kIsWeb
+                      ? CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Column(
+                              children: [
+                                toolbar(),
+                                if (isLoadingDone == true)
+                                  ProgressBars(
+                                    label:
+                                        'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
+                                    progress: totalInteractionProgress,
+                                    color: Colors.blue,
                                   ),
-                                  _comments.isEmpty
-                                      ? const SizedBox.shrink()
-                                      : Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
+                                if (isLoadingDone == true)
+                                  Container(height: 2, color: Colors.grey),
+                                if (isLoadingDone == true)
+                                  ProgressBars(
+                                    label:
+                                        'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
+                                    progress: _videoProgress,
+                                    color: Colors.blueAccent,
+                                  ),
+                                if (isLoadingDone == true)
+                                  Container(height: 2, color: Colors.grey),
+                                if (isLoadingDone == true)
+                                  ProgressBars(
+                                    label:
+                                        'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
+                                    progress: _progress.toDouble(),
+                                    color: Colors.lightBlue,
+                                  ),
+                              ],
+                            ),
+                          ),
+                          SliverFillRemaining(
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  flex: 3,
+                                  child:
+                                      isLoading
+                                          ? const Center(
+                                            child: CircularProgressIndicator(),
+                                          )
+                                          : state.when(
+                                            data:
+                                                (data) => LayoutBuilder(
+                                                  builder: (
+                                                    context,
+                                                    constraints,
+                                                  ) {
+                                                    _initialContent = getQuillPage(
+                                                      width:
+                                                          constraints.maxWidth,
+                                                      quillJsScript: data,
+                                                      fontFamily: _fontFamily,
+                                                      backgroundColor:
+                                                          _backgroundColor,
+                                                      encodedStyle:
+                                                          _encodedStyle,
+                                                      hintTextPadding:
+                                                          const EdgeInsets.only(
+                                                            left: 20,
+                                                          ),
+                                                      hintTextStyle:
+                                                          _hintTextStyle,
+                                                      hintText: '',
+                                                      textStyle:
+                                                          _editorTextStyle,
+                                                      isEnabled: isEnabled,
+                                                      hintTextAlign:
+                                                          TextAlign.start,
+                                                      inputAction:
+                                                          InputAction.newline,
+                                                      minHeight:
+                                                          MediaQuery.of(
+                                                            context,
+                                                          ).size.height,
+                                                      // padding: widget.padding,
+                                                    );
+                                                    return _buildEditorView(
+                                                      context: context,
+                                                      width:
+                                                          constraints.maxWidth,
+                                                      scripts: data,
+                                                    );
+                                                  },
+                                                ),
+                                            loading:
+                                                () => Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        color: Colors.green,
+                                                        strokeWidth: 0.3,
+                                                      ),
+                                                ),
+                                            error:
+                                                (e, _) => Column(
+                                                  children: [
+                                                    Icon(Icons.error),
+                                                    Text(e.toString()),
+                                                  ],
+                                                ),
                                           ),
-                                        ),
-                                        margin: const EdgeInsets.only(
-                                          right: 15,
-                                          top: 10,
-                                          bottom: 10,
-                                        ),
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                            0.3,
-                                        height:
-                                            MediaQuery.of(context).size.height,
-                                        child: ListView.builder(
-                                          shrinkWrap: true,
-                                          itemCount: _comments.length,
-                                          itemBuilder: (context, index) {
-                                            return commentTile(
-                                              _comments[index].text,
-                                            );
-                                          },
-                                        ),
+                                ),
+                                _comments.isEmpty
+                                    ? const SizedBox.shrink()
+                                    : Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                        //MOBILE VERSION EDITOR OUTLOOK
-                        : Column(
-                          children: [
-                            toolbar(),
-                            ProgressBars(
-                              label:
-                                  'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                              progress: totalInteractionProgress,
-                              color: Colors.blue,
-                            ),
-                            Container(height: 2, color: Colors.grey),
-                            ProgressBars(
-                              label:
-                                  'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                              progress: _videoProgress,
-                              color: Colors.blueAccent,
-                            ),
-                            Container(height: 2, color: Colors.grey),
-                            ProgressBars(
-                              label:
-                                  'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                              progress: _progress.toDouble(),
-                              color: Colors.lightBlue,
-                            ),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                controller: mobileScrollController,
-                                child: state.when(
-                                  data:
-                                      (data) => LayoutBuilder(
-                                        builder: (context, constraints) {
-                                          _initialContent = getQuillPage(
-                                            width: constraints.maxWidth,
-                                            quillJsScript: data,
-                                            fontFamily: _fontFamily,
-                                            backgroundColor: _backgroundColor,
-                                            encodedStyle: _encodedStyle,
-                                            hintTextPadding:
-                                                const EdgeInsets.only(left: 20),
-                                            hintTextStyle: _hintTextStyle,
-                                            hintText: '',
-                                            textStyle: _editorTextStyle,
-                                            isEnabled: isEnabled,
-                                            hintTextAlign: TextAlign.start,
-                                            inputAction: InputAction.newline,
-                                            minHeight:
-                                                MediaQuery.of(
-                                                  context,
-                                                ).size.height,
-                                          );
-                                          return _buildEditorView(
-                                            context: context,
-                                            width: constraints.maxWidth,
-                                            scripts: data,
+                                      margin: const EdgeInsets.only(
+                                        right: 15,
+                                        top: 10,
+                                        bottom: 10,
+                                      ),
+                                      width:
+                                          MediaQuery.of(context).size.width *
+                                          0.3,
+                                      height:
+                                          MediaQuery.of(context).size.height,
+                                      child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: _comments.length,
+                                        itemBuilder: (context, index) {
+                                          return commentTile(
+                                            _comments[index].text,
                                           );
                                         },
-                                      ),
-                                  loading:
-                                      () => Center(
-                                        child: CircularProgressIndicator(
-                                          color: Colors.green,
-                                          strokeWidth: 0.3,
-                                        ),
-                                      ),
-                                  error:
-                                      (e, _) => Column(
-                                        children: [
-                                          Icon(Icons.error),
-                                          Text(e.toString()),
-                                        ],
-                                      ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                  ],
-                );
-              },
-            ),
-          ),
-          bottomNavigationBar:
-              kIsWeb
-                  ? selectedTextlength >= 1
-                      ? Container(
-                        width: double.maxFinite,
-                        padding: const EdgeInsets.all(8.0),
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context).canvasColor,
-                              blurRadius: 0.1,
-                              spreadRadius: 0.4,
-                              offset: const Offset(2, 6),
-                            ),
-                          ],
-                        ),
-                        child: Wrap(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 14.0,
-                                left: 9,
-                                right: 9,
-                              ),
-                              child: Column(
-                                children: [
-                                  TextField(
-                                    controller: commentController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Make your comment...',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(50),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 9),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () {},
-                                        child: const Text('Cancel'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                      //MOBILE VERSION EDITOR OUTLOOK
+                      : Column(
+                        children: [
+                          toolbar(),
+                          ProgressBars(
+                            label:
+                                'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
+                            progress: totalInteractionProgress,
+                            color: Colors.blue,
+                          ),
+                          Container(height: 2, color: Colors.grey),
+                          ProgressBars(
+                            label:
+                                'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
+                            progress: _videoProgress,
+                            color: Colors.blueAccent,
+                          ),
+                          Container(height: 2, color: Colors.grey),
+                          ProgressBars(
+                            label:
+                                'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
+                            progress: _progress.toDouble(),
+                            color: Colors.lightBlue,
+                          ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              controller: mobileScrollController,
+                              child: state.when(
+                                data:
+                                    (data) => LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        _initialContent = getQuillPage(
+                                          width: constraints.maxWidth,
+                                          quillJsScript: data,
+                                          fontFamily: _fontFamily,
+                                          backgroundColor: _backgroundColor,
+                                          encodedStyle: _encodedStyle,
+                                          hintTextPadding:
+                                              const EdgeInsets.only(left: 20),
+                                          hintTextStyle: _hintTextStyle,
+                                          hintText: '',
+                                          textStyle: _editorTextStyle,
+                                          isEnabled: isEnabled,
+                                          hintTextAlign: TextAlign.start,
+                                          inputAction: InputAction.newline,
+                                          minHeight:
+                                              MediaQuery.of(
+                                                context,
+                                              ).size.height,
+                                        );
+                                        return _buildEditorView(
+                                          context: context,
+                                          width: constraints.maxWidth,
+                                          scripts: data,
+                                        );
+                                      },
+                                    ),
+                                loading:
+                                    () => Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.green,
+                                        strokeWidth: 0.3,
                                       ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          _addComment(commentController.text);
-                                          widget.controller.setFormat(
-                                            format: 'background',
-                                            value: '#FF9800',
-                                          );
-                                        },
-                                        child: const Text('Comment'),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                error:
+                                    (e, _) => Column(
+                                      children: [
+                                        Icon(Icons.error),
+                                        Text(e.toString()),
+                                      ],
+                                    ),
                               ),
                             ),
-                          ],
-                        ),
-                      )
-                      : const SizedBox.shrink()
-                  : const SizedBox.shrink(),
+                          ),
+                        ],
+                      ),
+                ],
+              );
+            },
+          ),
         ),
+        bottomNavigationBar:
+            kIsWeb
+                ? selectedTextlength >= 1
+                    ? Container(
+                      width: double.maxFinite,
+                      padding: const EdgeInsets.all(8.0),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).canvasColor,
+                            blurRadius: 0.1,
+                            spreadRadius: 0.4,
+                            offset: const Offset(2, 6),
+                          ),
+                        ],
+                      ),
+                      child: Wrap(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: 14.0,
+                              left: 9,
+                              right: 9,
+                            ),
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: commentController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Make your comment...',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 9),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {},
+                                      child: const Text('Cancel'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        _addComment(commentController.text);
+                                        widget.controller.setFormat(
+                                          format: 'background',
+                                          value: '#FF9800',
+                                        );
+                                      },
+                                      child: const Text('Comment'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    : const SizedBox.shrink()
+                : const SizedBox.shrink(),
       ),
+      // ),
     );
   }
 
