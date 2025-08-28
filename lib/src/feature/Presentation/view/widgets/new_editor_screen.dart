@@ -147,7 +147,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   void initState() {
-    print("___________________________________________calling the initstate-------------------------------");
     // _currentHeight = MediaQuery.of(context).size.height;
     _fontFamily = _editorTextStyle.fontFamily ?? 'Roboto';
     _encodedStyle = Uri.encodeFull(_fontFamily);
@@ -193,9 +192,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-      "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!CALLING PRINT METHOD_________________________________________________------------------------______________",
-    );
     final state = ref.watch(editorControllerProvider);
     //SetScroll Position for the first Option
     WidgetsBinding.instance.addPostFrameCallback((_) {
