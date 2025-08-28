@@ -147,6 +147,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   void initState() {
+    print("___________________________________________calling the initstate-------------------------------");
     // _currentHeight = MediaQuery.of(context).size.height;
     _fontFamily = _editorTextStyle.fontFamily ?? 'Roboto';
     _encodedStyle = Uri.encodeFull(_fontFamily);
@@ -192,6 +193,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(
+      "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!CALLING PRINT METHOD_________________________________________________------------------------______________",
+    );
     final state = ref.watch(editorControllerProvider);
     //SetScroll Position for the first Option
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -210,9 +214,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       }
     });
     return SafeArea(
-      // child: PopScope(
-      //   canPop: false,
-      //   onPopInvokedWithResult: (didPopUp, result) {},
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPopUp, result) {},
       child: Scaffold(
         floatingActionButton:
             selectedTextlength >= 1
@@ -531,7 +535,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     : const SizedBox.shrink()
                 : const SizedBox.shrink(),
       ),
-      // ),
+       ),
     );
   }
 
