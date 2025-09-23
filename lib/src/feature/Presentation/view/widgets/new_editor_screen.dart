@@ -986,7 +986,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     //scrollPosition.
     setState(() {
       // [totalProgressMap] contains the scrollPosition and the video Data.
-      print(totalProgressMap);
       totalInteractionProgress =
           (totalProgressMap.values.fold(
             0.0,
