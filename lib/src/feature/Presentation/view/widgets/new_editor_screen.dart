@@ -397,6 +397,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                   'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
                               progress: totalInteractionProgress,
                               color: Colors.blue,
+                              textColor: Colors.black,
                             ),
                             Container(height: 2, color: Colors.grey),
                             ProgressBars(
@@ -404,6 +405,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                   'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
                               progress: _videoProgress,
                               color: Colors.blueAccent,
+                              textColor: Colors.black,
                             ),
                             Container(height: 2, color: Colors.grey),
                             ProgressBars(
@@ -411,6 +413,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                   'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
                               progress: _progress.toDouble(),
                               color: Colors.lightBlue,
+                              textColor: Colors.black,
                             ),
                             Expanded(
                               child: SingleChildScrollView(

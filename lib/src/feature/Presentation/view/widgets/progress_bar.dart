@@ -6,11 +6,13 @@ class ProgressBars extends StatelessWidget {
     required this.label,
     required this.progress,
     required this.color,
+    this.textColor,
   });
 
   final String label;
   final double progress;
   final Color color;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +43,11 @@ class ProgressBars extends StatelessWidget {
           child: Center(
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 9),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 9,
+                color: textColor,
+              ),
             ),
           ),
         ),
