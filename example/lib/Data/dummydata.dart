@@ -22294,24 +22294,24 @@ List<HtmlData> content = [
     articleID: '102',
     title: 'Article Title 102',
     scrollProgress: 0.86,
-    videosTotalDuration: 1351213,
+    videosTotalDuration: 666497,
     videos: [
       Video(
         videoUrl: "https://www.youtube.com/embed/V-_O7nl0Ii0",
-        savedDuration: 256276,
-        videoDuration: 568255,
+        savedDuration: 25276,
+        videoDuration: 55000,
       ),
       Video(
         videoUrl:
             "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-        savedDuration: 187138,
-        videoDuration: 567763,
+        savedDuration: 250000,
+        videoDuration: 596474,
       ),
       Video(
         videoUrl:
             "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-        savedDuration: 38558,
-        videoDuration: 215195,
+        savedDuration: 5000,
+        videoDuration:15023,
       ),
     ],
     articleData: '''
