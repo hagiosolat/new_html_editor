@@ -167,6 +167,16 @@ class EditorRepository {
           width: 0;  /* Remove scrollbar space */
           background: transparent;  /* Optional: just make scrollbar invisible */
           } 
+             .ql-comment {
+            background-color:#FFEB3B;
+            border-bottom:2px solid #f9a825;
+            cursor:pointer;
+            border-radius: 2px 2px 0 0;
+          }
+          .ql-comment.active {
+            background-color: #fff17b;
+            box-shadow:0 2px 6px rgba(249, 168, 37, 0.4);
+          }
         </style>
    
         </head>
@@ -352,18 +362,6 @@ class EditorRepository {
             /// quill custom font import
             var FontStyle = Quill.import('attributors/class/font');
             Quill.register(FontStyle, true);
-
-            
-            const Inline = Quill.import('blots/inline');
-            class RequirementBlot extends Inline {}
-            RequirementBlot.blotName = 'requirement';
-            RequirementBlot.tagName = 'requirement';
-            Quill.register(RequirementBlot);
-            
-            class ResponsibilityBlot extends Inline {}
-            ResponsibilityBlot.blotName = 'responsibility';
-            ResponsibilityBlot.tagName = 'responsibility';
-            Quill.register(ResponsibilityBlot);
             
              ///// quill shift enter key binding      
               var bindings = {
@@ -454,22 +452,33 @@ class EditorRepository {
               }                
             });   
 
-            function getSelectionHtml() {
-           var selection = quilleditor.getSelection(true);
-           if (selection) {
-          var selectedContent = window.quilleditor.getContents(selection.index, selection.length);
-          var tempContainer = document.createElement('div');
-          var tempQuill = new Quill(tempContainer);
-           tempQuill.setContents(selectedContent);
-          return tempContainer.querySelector('.ql-editor').innerHTML;
-        }
-         return '';
-        }      
+               quilleditor.on('text-change', () => {
+            sendCommentsToFlutter();
+            });
 
-             const Parchment = Quill.import('parchment');
+            quilleditor.container.querySelector('.ql-editor').addEventListener('click', (e) => {            
+              let target = e.target;
+              while(target && target !== quilleditor.container){
+              if(target.classList && target.classList.contains('ql-comment')){
+               const commentId = target.getAttribute('data-comment-id');
+                if($kIsWeb){
+                CommentClickChannel(commentId);
+                }  else {
+                  CommentClickChannel.postMessage(commentId);
+                }
+                return;
+                }
+                target = target.parentElement;
+              }
+              if($kIsWeb){
+                CommentClickChannel('');
+              } else {
+              CommentClickChannel.postMessage('')
+              }
+            });                
+    
 
-            //const  = new Parchment.StyleAttributor('playButtonSize','font-size', {scope: Parchment.Scope.INLINE});
-            
+             const Parchment = Quill.import('parchment');            
            
              const PositionAttributor = new Parchment.StyleAttributor('position','position');
              const DisplayAttributor = new Parchment.StyleAttributor('display','display');

@@ -25,8 +25,9 @@ class QuillEditorController {
   /// and providing methods to interact with the editor's content and toolbar.
   ///
   QuillEditorController() {
-    _editorKey =
-    GlobalKey<NewEditorScreenState>(debugLabel: _getRandomString(15));
+    _editorKey = GlobalKey<NewEditorScreenState>(
+      debugLabel: _getRandomString(15),
+    );
     //  GlobalKey<QuillEditorNewState>(debugLabel: _getRandomString(15));
     _toolBarKey = GlobalKey<ToolBarState>(debugLabel: _getRandomString(15));
     _changeController = StreamController<String>();
@@ -37,7 +38,7 @@ class QuillEditorController {
   GlobalKey<ToolBarState>? get toolBarKey => _toolBarKey;
 
   GlobalKey<NewEditorScreenState>? get editorKey => _editorKey;
- // GlobalKey<QuillEditorNewState>? get editorKey => _editorKey;
+  // GlobalKey<QuillEditorNewState>? get editorKey => _editorKey;
 
   StreamController<String>? get changeController => _changeController;
 
@@ -119,8 +120,10 @@ class QuillEditorController {
   /// with the specified number of rows and columns.
   ///
   Future insertTable(int row, int column) async {
-    return await _editorKey?.currentState
-        ?.insertTableToEditor(row: row, column: column);
+    return await _editorKey?.currentState?.insertTableToEditor(
+      row: row,
+      column: column,
+    );
   }
 
   /// Modifies an existing table in the editor.
@@ -137,8 +140,10 @@ class QuillEditorController {
   /// If the [index] parameter is not specified, the text will be inserted at the current cursor position.
   ///
   Future insertText(String text, {int? index}) async {
-    return await _editorKey?.currentState
-        ?.insertHtmlTextToEditor(htmlText: text, index: index);
+    return await _editorKey?.currentState?.insertHtmlTextToEditor(
+      htmlText: text,
+      index: index,
+    );
   }
 
   /// Replaces the selected text in the editor.
@@ -185,8 +190,8 @@ class QuillEditorController {
   }
 
   @Deprecated(
-      'Please use onFocusChanged method in the QuillHtmlEditor widget for focus')
-
+    'Please use onFocusChanged method in the QuillHtmlEditor widget for focus',
+  )
   /// [hasFocus]checks if the editor has focus, returns the selection string length
   Future<int> hasFocus() async {
     return (await _editorKey?.currentState?.getSelectionCount) ?? 0;
@@ -221,13 +226,18 @@ class QuillEditorController {
   }
 
   ///[setFormat]  sets the format to editor either by selection or by cursor position
-  void setFormat(
-      {required String format,
-      required dynamic value,
-      int index = -1,
-      int length = 0}) async {
-    _editorKey?.currentState
-        ?.setFormat(format: format, value: value, index: index, length: length);
+  void setFormat({
+    required String format,
+    required dynamic value,
+    int index = -1,
+    int length = 0,
+  }) async {
+    _editorKey?.currentState?.setFormat(
+      format: format,
+      value: value,
+      index: index,
+      length: length,
+    );
   }
 
   ///[onTextChanged] method is used to listen to editor text changes
@@ -302,18 +312,60 @@ class QuillEditorController {
 
   /// [setScrollPosition] method to setScrollPosition
   void setScrollPosition(double scrollPosition) async {
-    await _editorKey?.currentState
-        ?.setScrollPosition(scrollPosition: scrollPosition);
+    await _editorKey?.currentState?.setScrollPosition(
+      scrollPosition: scrollPosition,
+    );
   }
 
   /// [setVideoPosition] method to set the Last saved Video Position
   void setVideoPosition(Map<String, dynamic> videos) async {
     await _editorKey?.currentState?.setVideoPosition(videos: videos);
   }
+
+  void addComment(
+    String commentBody, {
+    int? index,
+    int? length,
+    String? commentId,
+  }) async {
+    await _editorKey?.currentState?.addComment(
+      commentBody: commentBody,
+      index: index,
+      length: length,
+      commentId: commentId,
+    );
+  }
+
+  void setActiveComment(String commentId) async {
+    await _editorKey?.currentState?.setActiveComment(commentId: commentId);
+  }
+
+  void deleteCommentReply(String commentId, int index) async {
+    await _editorKey?.currentState?.deleteCommentReply(
+      commentId: commentId,
+      index: index,
+    );
+  }
+
+  void editComment(String commentId, int threadIndex, String newBody) async {
+    await _editorKey?.currentState?.editComment(
+      commentId: commentId,
+      threadIndex: threadIndex,
+      newBody: newBody,
+    );
+  }
+
+  void scrollToComment(String commentId) async {
+    await _editorKey?.currentState?.scrollToComment(commentId: commentId);
+  }
 }
 
 const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
 Random _rnd = Random();
 
-String _getRandomString(int length) => String.fromCharCodes(Iterable.generate(
-    length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+String _getRandomString(int length) => String.fromCharCodes(
+  Iterable.generate(
+    length,
+    (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length)),
+  ),
+);

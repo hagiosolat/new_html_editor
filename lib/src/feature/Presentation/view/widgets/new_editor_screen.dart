@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:new_html_editor/new_html_editor.dart';
+import 'package:new_html_editor/src/feature/Presentation/view/widgets/comment_edit_widget.dart';
+import 'package:new_html_editor/src/feature/Presentation/view/widgets/comment_item_widget.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/mobile_youtube_video.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/progress_bar.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/show_web_video.dart';
@@ -88,11 +90,17 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   final TextEditingController commentController = TextEditingController();
 
-  final List<Comment> _comments = [];
+  List<Comment> _comments = [];
+
+  String activeCommentId = '';
 
   int selectedTextlength = 0;
 
   int selectedTextPosition = 0;
+
+  int savedselectionLength = 0;
+
+  int savedSelectionPosition = 0;
 
   Map<String, dynamic> totalProgressMap = {};
 
@@ -143,13 +151,20 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   bool? isLoadingDone;
 
+  bool showModal = false;
+
+  FocusNode commentFocusNode = FocusNode();
+
   late String _fontFamily;
+  bool isReply = false;
+  bool isEditingMode = false;
 
   @override
   void initState() {
     // _currentHeight = MediaQuery.of(context).size.height;
     _fontFamily = _editorTextStyle.fontFamily ?? 'Roboto';
     _encodedStyle = Uri.encodeFull(_fontFamily);
+
     if (kIsWeb && widget.isOutSideEditor) {
       SchedulerBinding.instance.scheduleFrameCallback((_) {
         // setHtmlTextToEditor(widget.editorContent);
@@ -186,7 +201,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   void dispose() {
-    widget.controller.dispose();
+    // widget.controller.dispose();
     super.dispose();
   }
 
@@ -214,333 +229,397 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
         canPop: false,
         onPopInvokedWithResult: (didPopUp, result) {},
         child: Scaffold(
-          floatingActionButton:
-              selectedTextlength >= 1
-                  ? !kIsWeb
-                      ? ElevatedButton(
-                        onPressed: () async {
-                          final selection =
-                              await widget.controller.getSelectionRange();
-                          if (selection.length == 0) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Select text to comment on'),
-                              ),
-                            );
-                          } else {
-                            showModalSheetScreen(
-                              selectedTextPosition,
-                              selectedTextlength,
-                            );
-                          }
-                        },
-                        child: const Text('Add Comment'),
-                      )
-                      : const SizedBox.shrink()
-                  : const SizedBox.shrink(),
           backgroundColor: Colors.white,
-          resizeToAvoidBottomInset: true,
-          body: SizedBox(
-            child: LayoutBuilder(
-              builder: (context, constraint) {
-                return Stack(
-                  children: [
-                    kIsWeb
-                        ? CustomScrollView(
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: Column(
-                                children: [
-                                  toolbar(),
-                                  if (isLoadingDone == true)
-                                    ProgressBars(
-                                      label:
-                                          'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                                      progress: totalInteractionProgress,
-                                      color: Colors.blue,
-                                      textColor: Colors.black,
-                                    ),
-                                  if (isLoadingDone == true)
-                                    Container(height: 2, color: Colors.grey),
-                                  if (isLoadingDone == true)
-                                    ProgressBars(
-                                      label:
-                                          'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                                      progress: _videoProgress,
-                                      color: Colors.blueAccent,
-                                       textColor: Colors.black,
-                                    ),
-                                  if (isLoadingDone == true)
-                                    Container(height: 2, color: Colors.grey),
-                                  if (isLoadingDone == true)
-                                    ProgressBars(
-                                      label:
-                                          'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                                      progress: _progress.toDouble(),
-                                      color: Colors.lightBlue,
-                                       textColor: Colors.black,
-                                    ),
-                                ],
-                              ),
-                            ),
-                            SliverFillRemaining(
-                              child: Row(
-                                children: [
-                                  Flexible(
-                                    flex: 3,
-                                    child:
-                                        isLoading
-                                            ? const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            )
-                                            : state.when(
-                                              data:
-                                                  (data) => LayoutBuilder(
-                                                    builder: (
-                                                      context,
-                                                      constraints,
-                                                    ) {
-                                                      _initialContent = getQuillPage(
-                                                        width:
-                                                            constraints
-                                                                .maxWidth,
-                                                        quillJsScript: data,
-                                                        fontFamily: _fontFamily,
-                                                        backgroundColor:
-                                                            _backgroundColor,
-                                                        encodedStyle:
-                                                            _encodedStyle,
-                                                        hintTextPadding:
-                                                            const EdgeInsets.only(
-                                                              left: 20,
-                                                            ),
-                                                        hintTextStyle:
-                                                            _hintTextStyle,
-                                                        hintText: '',
-                                                        textStyle:
-                                                            _editorTextStyle,
-                                                        isEnabled: isEnabled,
-                                                        hintTextAlign:
-                                                            TextAlign.start,
-                                                        inputAction:
-                                                            InputAction.newline,
-                                                        minHeight:
-                                                            MediaQuery.of(
-                                                              context,
-                                                            ).size.height,
-                                                        // padding: widget.padding,
-                                                      );
-                                                      return _buildEditorView(
-                                                        context: context,
-                                                        width:
-                                                            constraints
-                                                                .maxWidth,
-                                                        scripts: data,
-                                                      );
-                                                    },
-                                                  ),
-                                              loading:
-                                                  () => Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          color: Colors.green,
-                                                          strokeWidth: 0.3,
-                                                        ),
-                                                  ),
-                                              error:
-                                                  (e, _) => Column(
-                                                    children: [
-                                                      Icon(Icons.error),
-                                                      Text(e.toString()),
-                                                    ],
-                                                  ),
-                                            ),
+          resizeToAvoidBottomInset: false,
+          floatingActionButton:
+              !kIsWeb && selectedTextlength >= 1
+                  ? ElevatedButton(
+                    onPressed: () async {
+                      //Remove the backGround for former selected text
+                      widget.controller.setFormat(
+                        format: 'background',
+                        value: null,
+                        index: savedSelectionPosition,
+                        length: savedselectionLength,
+                      );
+                      //Set a pending new background for the new selectedText
+                      widget.controller.setFormat(
+                        format: 'background',
+                        value: '#3D3D3D',
+                        index: selectedTextPosition,
+                        length: selectedTextlength,
+                      );
+                      setState(() {
+                        savedSelectionPosition = selectedTextPosition;
+                        savedselectionLength = selectedTextlength;
+                        showModal = true;
+                        selectedTextlength = 0;
+                      });
+                    },
+                    child: const Text("Add Comment"),
+                  )
+                  : const SizedBox.shrink(),
+          //  : const SizedBox.shrink(),
+          body: Column(
+            children: [
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraint) {
+                    return Stack(
+                      children: [
+                        kIsWeb
+                            ? CustomScrollView(
+                              slivers: [
+                                SliverToBoxAdapter(
+                                  child: Column(
+                                    children: [
+                                      toolbar(),
+                                      if (isLoadingDone == true)
+                                        ProgressBars(
+                                          label:
+                                              'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
+                                          progress: totalInteractionProgress,
+                                          color: Colors.blue,
+                                          textColor: Colors.black,
+                                        ),
+                                      if (isLoadingDone == true)
+                                        Container(
+                                          height: 2,
+                                          color: Colors.grey,
+                                        ),
+                                      if (isLoadingDone == true)
+                                        ProgressBars(
+                                          label:
+                                              'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
+                                          progress: _videoProgress,
+                                          color: Colors.blueAccent,
+                                          textColor: Colors.black,
+                                        ),
+                                      if (isLoadingDone == true)
+                                        Container(
+                                          height: 2,
+                                          color: Colors.grey,
+                                        ),
+                                      if (isLoadingDone == true)
+                                        ProgressBars(
+                                          label:
+                                              'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
+                                          progress: _progress.toDouble(),
+                                          color: Colors.lightBlue,
+                                          textColor: Colors.black,
+                                        ),
+                                    ],
                                   ),
-                                  _comments.isEmpty
-                                      ? const SizedBox.shrink()
-                                      : Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        margin: const EdgeInsets.only(
-                                          right: 15,
-                                          top: 10,
-                                          bottom: 10,
-                                        ),
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                            0.3,
-                                        height:
-                                            MediaQuery.of(context).size.height,
-                                        child: ListView.builder(
-                                          shrinkWrap: true,
-                                          itemCount: _comments.length,
-                                          itemBuilder: (context, index) {
-                                            return commentTile(
-                                              _comments[index].text,
-                                            );
-                                          },
-                                        ),
+                                ),
+                                SliverFillRemaining(
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        flex: 3,
+                                        child:
+                                            isLoading
+                                                ? const Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                )
+                                                : state.when(
+                                                  data:
+                                                      (data) => LayoutBuilder(
+                                                        builder: (
+                                                          context,
+                                                          constraints,
+                                                        ) {
+                                                          _initialContent = getQuillPage(
+                                                            width:
+                                                                constraints
+                                                                    .maxWidth,
+                                                            quillJsScript: data,
+                                                            fontFamily:
+                                                                _fontFamily,
+                                                            backgroundColor:
+                                                                _backgroundColor,
+                                                            encodedStyle:
+                                                                _encodedStyle,
+                                                            hintTextPadding:
+                                                                const EdgeInsets.only(
+                                                                  left: 20,
+                                                                ),
+                                                            hintTextStyle:
+                                                                _hintTextStyle,
+                                                            hintText: '',
+                                                            textStyle:
+                                                                _editorTextStyle,
+                                                            isEnabled:
+                                                                isEnabled,
+                                                            hintTextAlign:
+                                                                TextAlign.start,
+                                                            inputAction:
+                                                                InputAction
+                                                                    .newline,
+                                                            minHeight:
+                                                                MediaQuery.of(
+                                                                  context,
+                                                                ).size.height,
+                                                            // padding: widget.padding,
+                                                          );
+                                                          return _buildEditorView(
+                                                            context: context,
+                                                            width:
+                                                                constraints
+                                                                    .maxWidth,
+                                                            scripts: data,
+                                                          );
+                                                        },
+                                                      ),
+                                                  loading:
+                                                      () => Center(
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              color:
+                                                                  Colors.green,
+                                                              strokeWidth: 0.3,
+                                                            ),
+                                                      ),
+                                                  error:
+                                                      (e, _) => Column(
+                                                        children: [
+                                                          Icon(Icons.error),
+                                                          Text(e.toString()),
+                                                        ],
+                                                      ),
+                                                ),
                                       ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                        //MOBILE VERSION EDITOR OUTLOOK
-                        : Column(
-                          children: [
-                            toolbar(),
-                            ProgressBars(
-                              label:
-                                  'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                              progress: totalInteractionProgress,
-                              color: Colors.blue,
-                              textColor: Colors.black,
-                            ),
-                            Container(height: 2, color: Colors.grey),
-                            ProgressBars(
-                              label:
-                                  'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                              progress: _videoProgress,
-                              color: Colors.blueAccent,
-                              textColor: Colors.black,
-                            ),
-                            Container(height: 2, color: Colors.grey),
-                            ProgressBars(
-                              label:
-                                  'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                              progress: _progress.toDouble(),
-                              color: Colors.lightBlue,
-                              textColor: Colors.black,
-                            ),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                controller: mobileScrollController,
-                                child: state.when(
-                                  data:
-                                      (data) => LayoutBuilder(
-                                        builder: (context, constraints) {
-                                          _initialContent = getQuillPage(
-                                            width: constraints.maxWidth,
-                                            quillJsScript: data,
-                                            fontFamily: _fontFamily,
-                                            backgroundColor: _backgroundColor,
-                                            encodedStyle: _encodedStyle,
-                                            hintTextPadding:
-                                                const EdgeInsets.only(left: 20),
-                                            hintTextStyle: _hintTextStyle,
-                                            hintText: '',
-                                            textStyle: _editorTextStyle,
-                                            isEnabled: isEnabled,
-                                            hintTextAlign: TextAlign.start,
-                                            inputAction: InputAction.newline,
-                                            minHeight:
+                                      _comments.isEmpty &&
+                                              selectedTextlength < 1
+                                          ? const SizedBox.shrink()
+                                          : Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.withAlpha(20),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            margin: const EdgeInsets.only(
+                                              right: 15,
+                                              top: 10,
+                                              bottom: 10,
+                                            ),
+                                            width:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.width *
+                                                0.3,
+                                            height:
                                                 MediaQuery.of(
                                                   context,
                                                 ).size.height,
-                                          );
-                                          return _buildEditorView(
-                                            context: context,
-                                            width: constraints.maxWidth,
-                                            scripts: data,
-                                          );
-                                        },
-                                      ),
-                                  loading:
-                                      () => Center(
-                                        child: CircularProgressIndicator(
-                                          color: Colors.green,
-                                          strokeWidth: 0.3,
-                                        ),
-                                      ),
-                                  error:
-                                      (e, _) => Column(
-                                        children: [
-                                          Icon(Icons.error),
-                                          Text(e.toString()),
-                                        ],
-                                      ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                  ],
-                );
-              },
-            ),
-          ),
-          bottomNavigationBar:
-              kIsWeb
-                  ? selectedTextlength >= 1
-                      ? Container(
-                        width: double.maxFinite,
-                        padding: const EdgeInsets.all(8.0),
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context).canvasColor,
-                              blurRadius: 0.1,
-                              spreadRadius: 0.4,
-                              offset: const Offset(2, 6),
-                            ),
-                          ],
-                        ),
-                        child: Wrap(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 14.0,
-                                left: 9,
-                                right: 9,
-                              ),
-                              child: Column(
-                                children: [
-                                  TextField(
-                                    controller: commentController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Make your comment...',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(50),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 9),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () {},
-                                        child: const Text('Cancel'),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          _addComment(commentController.text);
-                                          widget.controller.setFormat(
-                                            format: 'background',
-                                            value: '#FF9800',
-                                          );
-                                        },
-                                        child: const Text('Comment'),
-                                      ),
+                                            //Comment Session implementation on the Editor
+                                            child: Column(
+                                              children: [
+                                                //Condition to show just the commentTextField
+                                                if (selectedTextlength >= 1 &&
+                                                    kIsWeb)
+                                                  CommentTextField(
+                                                    onCommentClick: (value) {
+                                                      if (value.isEmpty) {
+                                                        setState(() {
+                                                          selectedTextlength =
+                                                              0;
+                                                        });
+                                                      } else {
+                                                        widget.controller
+                                                            .addComment(value);
+                                                        selectedTextlength = 0;
+                                                      }
+                                                    },
+                                                    onCancelPressed: () {
+                                                      setState(() {
+                                                        selectedTextlength = 0;
+                                                      });
+                                                    },
+                                                  ),
+                                                Expanded(
+                                                  child: ListView.builder(
+                                                    shrinkWrap: true,
+                                                    itemCount: _comments.length,
+                                                    itemBuilder: (
+                                                      context,
+                                                      index,
+                                                    ) {
+                                                      return CommentItemWidget(
+                                                        controller:
+                                                            widget.controller,
+                                                        isEditingMode:
+                                                            isEditingMode,
+                                                        onEditPressed: (value) {
+                                                          setState(() {
+                                                            isReply = value;
+                                                            isEditingMode =
+                                                                value;
+                                                          });
+                                                        },
+                                                        activeCommentId:
+                                                            activeCommentId,
+                                                        comment:
+                                                            _comments[index],
+                                                        enableCommentId: (
+                                                          value,
+                                                        ) {
+                                                          setState(() {
+                                                            activeCommentId =
+                                                                value;
+                                                          });
+                                                        },
+                                                        onCardClick: () {
+                                                          setState(() {
+                                                            activeCommentId =
+                                                                _comments[index]
+                                                                    .id;
+                                                            widget.controller
+                                                                .scrollToComment(
+                                                                  _comments[index]
+                                                                      .id,
+                                                                );
+                                                            widget.controller
+                                                                .setActiveComment(
+                                                                  _comments[index]
+                                                                      .id,
+                                                                );
+                                                          });
+                                                        },
+                                                        isReply: isReply,
+                                                        onReplyPressed: (
+                                                          value,
+                                                        ) {
+                                                          setState(() {
+                                                            isReply = value;
+                                                          });
+                                                        },
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
+                            )
+                            //MOBILE VERSION EDITOR OUTLOOK
+                            : Column(
+                              children: [
+                                toolbar(),
+                                ProgressBars(
+                                  label:
+                                      'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
+                                  progress: totalInteractionProgress,
+                                  color: Colors.blue,
+                                  textColor: Colors.black,
+                                ),
+                                Container(height: 2, color: Colors.grey),
+                                ProgressBars(
+                                  label:
+                                      'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
+                                  progress: _videoProgress,
+                                  color: Colors.blueAccent,
+                                  textColor: Colors.black,
+                                ),
+                                Container(height: 2, color: Colors.grey),
+                                ProgressBars(
+                                  label:
+                                      'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
+                                  progress: _progress.toDouble(),
+                                  color: Colors.lightBlue,
+                                  textColor: Colors.black,
+                                ),
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    controller: mobileScrollController,
+                                    child: state.when(
+                                      data:
+                                          (data) => LayoutBuilder(
+                                            builder: (context, constraints) {
+                                              _initialContent = getQuillPage(
+                                                width: constraints.maxWidth,
+                                                quillJsScript: data,
+                                                fontFamily: _fontFamily,
+                                                backgroundColor:
+                                                    _backgroundColor,
+                                                encodedStyle: _encodedStyle,
+                                                hintTextPadding:
+                                                    const EdgeInsets.only(
+                                                      left: 20,
+                                                    ),
+                                                hintTextStyle: _hintTextStyle,
+                                                hintText: '',
+                                                textStyle: _editorTextStyle,
+                                                isEnabled: isEnabled,
+                                                hintTextAlign: TextAlign.start,
+                                                inputAction:
+                                                    InputAction.newline,
+                                                minHeight:
+                                                    MediaQuery.of(
+                                                      context,
+                                                    ).size.height,
+                                              );
+                                              return _buildEditorView(
+                                                context: context,
+                                                width: constraints.maxWidth,
+                                                scripts: data,
+                                              );
+                                            },
+                                          ),
+                                      loading:
+                                          () => Center(
+                                            child: CircularProgressIndicator(
+                                              color: Colors.green,
+                                              strokeWidth: 0.3,
+                                            ),
+                                          ),
+                                      error:
+                                          (e, _) => Column(
+                                            children: [
+                                              Icon(Icons.error),
+                                              Text(e.toString()),
+                                            ],
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      )
-                      : const SizedBox.shrink()
+                      ],
+                    );
+                  },
+                ),
+              ),
+              //This the commentTextField for mobile Version
+              showModal
+                  ? CommentTextField(
+                    onCancelPressed: () {
+                      setState(() {
+                        showModal = false;
+                      });
+                    },
+                    onCommentClick: (value) {
+                      if (value.isEmpty) {
+                      } else {
+                        widget.controller.addComment(
+                          value,
+                          index: savedSelectionPosition,
+                          length: savedselectionLength,
+                        );
+                        setState(() {
+                          showModal = false;
+                        });
+                      }
+                    },
+                    focusNode: commentFocusNode,
+                  )
                   : const SizedBox.shrink(),
+            ],
+          ),
         ),
       ),
     );
@@ -673,6 +752,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               callBack: (map) {
                 setState(() {
                   _hasFocus = map?.toString() == 'true';
+                  if (_hasFocus) {
+                    commentFocusNode.unfocus();
+                  }
                 });
 
                 // if (widget.onFocusChanged != null) {
@@ -729,9 +811,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               name: 'OnSelectionChanged',
               callBack: (selection) {
                 try {
-                  if (!_hasFocus) {
+                  if (_hasFocus) {
                     setState(() {
-                      _hasFocus = true;
+                      commentFocusNode.unfocus();
                     });
                   }
                   var sel =
@@ -774,9 +856,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                       setState(() {
                         // From here I can get the current Position and then pass
                         // it to the Map
-                        // print(
-                        //   "This is the Flutter side taking the videos $timing",
-                        // );
+                        // print('--This is the timig $timing');
                         videoProgressMap[video.videoUrl] =
                             video.currentPosition;
                         totalProgressMap[video.videoUrl] =
@@ -842,7 +922,49 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 }
               },
             ),
-
+            DartCallback(
+              name: 'CommentChannel',
+              callBack: (comments) {
+                try {
+                  if (comments != null) {
+                    final commentConvert =
+                        jsonDecode(comments) as List<dynamic>;
+                    setState(() {
+                      _comments =
+                          commentConvert
+                              .map((comment) => Comment.fromJson(comment))
+                              .toList();
+                    });
+                  }
+                } catch (e) {
+                  print("This is the error ${e.toString()}");
+                }
+              },
+            ),
+            DartCallback(
+              name: 'CommentClickChannel',
+              callBack: (jsCommentId) {
+                try {
+                  if (jsCommentId != null) {
+                    setState(() {
+                      activeCommentId = jsCommentId;
+                    });
+                    if (activeCommentId.isNotEmpty &&
+                        _comments.isNotEmpty &&
+                        !kIsWeb) {
+                      showCommentModalForMobile(
+                        context,
+                        _comments,
+                        widget.controller,
+                        activeCommentId,
+                        isReply,
+                      );
+                    }
+                    widget.controller.setActiveComment(jsCommentId);
+                  }
+                } catch (e) {}
+              },
+            ),
             DartCallback(
               name: 'GetVideoUrl',
               callBack: (message) {
@@ -941,7 +1063,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   }
 
   Widget toolbar() {
-    return ToolBar(
+    return ToolBar.scroll(
       onBeforeVideoInserted: (message) {
         if (message != null) {
           setState(() {
@@ -955,7 +1077,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       iconColor: _toolbarIconColor,
       activeIconColor: Colors.greenAccent.shade400,
       controller: widget.controller,
-      crossAxisAlignment: WrapCrossAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      // crossAxisAlignment: WrapCrossAlignment.start,
       direction: Axis.horizontal,
       customButtons: [
         Container(
@@ -1131,115 +1254,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     );
   }
 
-  Widget commentTile(String comment) {
-    return Container(
-      margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.all(9),
-      //height: 40,
-      width: MediaQuery.of(context).size.width * 0.4,
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.09),
-            offset: const Offset(0, 4),
-            spreadRadius: 0,
-            blurRadius: 24,
-          ),
-        ],
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(9),
-      ),
-      child: Text(comment),
-    );
-  }
-
-  void _addComment(String text) {
-    final comment = Comment(text: text);
-    setState(() {
-      _comments.add(comment);
-      commentController.clear();
-      selectedTextlength = 0;
-    });
-  }
-
-  ///WEB VERSION COMMENT Modal Bottom Sheet
-  showModalSheetScreen(int index, int length) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-            width: double.maxFinite,
-            padding: const EdgeInsets.all(8.0),
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).canvasColor,
-                  blurRadius: 0.1,
-                  spreadRadius: 0.4,
-                  offset: const Offset(2, 6),
-                ),
-              ],
-            ),
-            child: Wrap(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 14.0, left: 9, right: 9),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: commentController,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          hintText: 'Make your comment...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 9),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Cancel'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              _addComment(commentController.text);
-                              widget.controller.setFormat(
-                                format: 'background',
-                                value: '#FF9800',
-                                index: index,
-                                length: length,
-                              );
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Comment'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-        //: const SizedBox.shrink(): const SizedBox.shrink()
-      },
-    );
-  }
-
   Future<String> get getHtmlFromEditor => _getHtmlFromEditor();
 
   Future<String> get getPlainTextFromEditor => _getPlainTextFromEditor();
@@ -1308,6 +1322,37 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       _setVideoPosition(videos: videos);
 
   String stripHtmlIfNeeded(text) => _stripHtmlIfNeeded(text);
+
+  Future addComment({
+    required String commentBody,
+    int? length,
+    int? index,
+    String? commentId,
+  }) => _addComment(
+    commentBody: commentBody,
+    length: length,
+    index: index,
+    commentId: commentId,
+  );
+
+  Future setActiveComment({required String commentId}) =>
+      _setActiveComment(commentId: commentId);
+
+  Future deleteCommentReply({required String commentId, required int index}) =>
+      _deleteCommentReply(commentId: commentId, index: index);
+
+  Future editComment({
+    required String commentId,
+    required int threadIndex,
+    required String newBody,
+  }) => _editComment(
+    commentId: commentId,
+    threadIndex: threadIndex,
+    newBody: newBody,
+  );
+
+  Future scrollToComment({required String commentId}) =>
+      _scrollToComment(commentId: commentId);
 
   /// it is a regex method to remove the tags and replace them with empty space
   static String _stripHtmlIfNeeded(String text) {
@@ -1477,12 +1522,55 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   /// method to un focus editor
   void unFocusEditor() => widget.controller.unFocus();
-}
 
-// class Comment {
-//   final String text;
-//   Comment({required this.text});
-// }
+  Future _addComment({
+    required String commentBody,
+    int? index,
+    int? length,
+    String? commentId,
+  }) async {
+    return await _webviewController?.callJsMethod("addComment", [
+      commentBody,
+      index ?? -1,
+      length ?? 0,
+      commentId,
+    ]);
+  }
+
+  Future _setActiveComment({required String commentId}) async {
+    return await _webviewController?.callJsMethod("setActiveComment", [
+      commentId,
+    ]);
+  }
+
+  Future _deleteCommentReply({
+    required String commentId,
+    required int index,
+  }) async {
+    return await _webviewController?.callJsMethod("deleteReply", [
+      commentId,
+      index,
+    ]);
+  }
+
+  Future _editComment({
+    required String commentId,
+    required int threadIndex,
+    required String newBody,
+  }) async {
+    return await _webviewController?.callJsMethod(("editComment"), [
+      commentId,
+      threadIndex,
+      newBody,
+    ]);
+  }
+
+  Future _scrollToComment({required String commentId}) async {
+    return await _webviewController?.callJsMethod("scrollToComment", [
+      commentId,
+    ]);
+  }
+}
 
 void _printWrapper(bool showPrint, String text) {
   if (showPrint) {
@@ -1491,6 +1579,56 @@ void _printWrapper(bool showPrint, String text) {
 }
 
 class Comment {
-  final String text;
-  Comment({required this.text});
+  final String id;
+  final String commentedText;
+  final List<CommentReply> thread;
+  final int start;
+  final int end;
+
+  const Comment({
+    required this.id,
+    required this.commentedText,
+    required this.thread,
+    required this.start,
+    required this.end,
+  });
+
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+      id: json['id'],
+      commentedText: json['commentedText'],
+      thread:
+          (json['thread'] as List)
+              .map((reply) => CommentReply.fromJson(reply))
+              .toList(),
+      start: json['start'],
+      end: json['end'],
+    );
+  }
+}
+
+class CommentReply {
+  String author;
+  String body;
+  String timestamp;
+  bool? edited;
+  String? editedAt;
+
+  CommentReply({
+    required this.author,
+    required this.body,
+    required this.timestamp,
+    this.edited,
+    this.editedAt,
+  });
+
+  factory CommentReply.fromJson(Map<String, dynamic> json) {
+    return CommentReply(
+      author: json['author'],
+      body: json['body'],
+      timestamp: json['timestamp'],
+      edited: json['edited'],
+      editedAt: json['editedAt'],
+    );
+  }
 }

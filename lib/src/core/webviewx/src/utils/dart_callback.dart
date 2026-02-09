@@ -52,5 +52,4 @@ class DartCallback {
   bool operator ==(Object other) => other is DartCallback && other.name == name;
 
   @override
-  int get hashCode => name.hashCode;
-}
+  int get hashCode => name.hashCode; }

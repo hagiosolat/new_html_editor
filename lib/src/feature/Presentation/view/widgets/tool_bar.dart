@@ -274,14 +274,14 @@ class ToolBar extends StatefulWidget {
     this.toolBarColor = Colors.white,
     this.mainAxisSize,
     this.onBeforeVideoInserted,
-  })  : assert(crossAxisAlignment is WrapCrossAlignment,
-            "Please pass WrapCrossAlignment, instead of CrossAxisAlignment"),
-        mainAxisAlignment = MainAxisAlignment.start,
-        textBaseline = TextBaseline.alphabetic,
-        _isScrollable = false,
-        super(
-          key: controller.toolBarKey,
-        );
+  }) : assert(
+         crossAxisAlignment is WrapCrossAlignment,
+         "Please pass WrapCrossAlignment, instead of CrossAxisAlignment",
+       ),
+       mainAxisAlignment = MainAxisAlignment.start,
+       textBaseline = TextBaseline.alphabetic,
+       _isScrollable = false,
+       super(key: controller.toolBarKey);
 
   ///[ToolBar.scroll] shows the widget in a single row/column
   ///Please define the [direction], to make it a row or a column
@@ -305,16 +305,16 @@ class ToolBar extends StatefulWidget {
     this.mainAxisSize = MainAxisSize.min,
     this.textBaseline = TextBaseline.alphabetic,
     this.onBeforeVideoInserted,
-  })  : assert(crossAxisAlignment is CrossAxisAlignment,
-            "Please pass CrossAxisAlignment, instead of WrapCrossAlignment"),
-        spacing = 0.0,
-        runSpacing = 0.0,
-        alignment = WrapAlignment.start,
-        runAlignment = WrapAlignment.start,
-        _isScrollable = true,
-        super(
-          key: controller.toolBarKey,
-        );
+  }) : assert(
+         crossAxisAlignment is CrossAxisAlignment,
+         "Please pass CrossAxisAlignment, instead of WrapCrossAlignment",
+       ),
+       spacing = 0.0,
+       runSpacing = 0.0,
+       alignment = WrapAlignment.start,
+       runAlignment = WrapAlignment.start,
+       _isScrollable = true,
+       super(key: controller.toolBarKey);
   @override
   State<ToolBar> createState() => ToolBarState();
 }
@@ -331,35 +331,43 @@ class ToolBarState extends State<ToolBar> {
   @override
   void initState() {
     _fontBgColorKey = GlobalKey<ElTooltipState>(
-        debugLabel: 'fontBgColorKey${widget.controller.hashCode.toString()}');
+      debugLabel: 'fontBgColorKey${widget.controller.hashCode.toString()}',
+    );
     _fontColorKey = GlobalKey<ElTooltipState>(
-        debugLabel: 'fontColorKey${widget.controller.hashCode.toString()}');
+      debugLabel: 'fontColorKey${widget.controller.hashCode.toString()}',
+    );
     _tablePickerKey = GlobalKey<ElTooltipState>(
-        debugLabel: '_tablePickerKey${widget.controller.hashCode.toString()}');
+      debugLabel: '_tablePickerKey${widget.controller.hashCode.toString()}',
+    );
 
     if (widget.padding != null) {
       _buttonPadding = widget.padding!;
     }
     if (widget.toolBarConfig == null || widget.toolBarConfig!.isEmpty) {
       for (var style in ToolBarStyle.values) {
-        _toolbarList.add(ToolBarItem(
-          activeIconColor: widget.activeIconColor!,
-          iconColor: widget.iconColor!,
-          iconSize: widget.iconSize!,
-          style: style,
-          isActive: false,
-          padding: _buttonPadding,
-        ));
-      }
-    } else {
-      for (var style in widget.toolBarConfig!) {
-        _toolbarList.add(ToolBarItem(
+        _toolbarList.add(
+          ToolBarItem(
             activeIconColor: widget.activeIconColor!,
             iconColor: widget.iconColor!,
             iconSize: widget.iconSize!,
             style: style,
             isActive: false,
-            padding: _buttonPadding));
+            padding: _buttonPadding,
+          ),
+        );
+      }
+    } else {
+      for (var style in widget.toolBarConfig!) {
+        _toolbarList.add(
+          ToolBarItem(
+            activeIconColor: widget.activeIconColor!,
+            iconColor: widget.iconColor!,
+            iconSize: widget.iconSize!,
+            style: style,
+            isActive: false,
+            padding: _buttonPadding,
+          ),
+        );
       }
     }
     super.initState();
@@ -372,9 +380,7 @@ class ToolBarState extends State<ToolBar> {
         ignoring: !widget.controller.isEnable,
         child: Container(
           width: double.maxFinite,
-          decoration: BoxDecoration(
-            color: widget.toolBarColor,
-          ),
+          decoration: BoxDecoration(color: widget.toolBarColor),
           child: SingleChildScrollView(
             scrollDirection: widget.direction,
             child: Flex(
@@ -393,9 +399,7 @@ class ToolBarState extends State<ToolBar> {
       ignoring: !widget.controller.isEnable,
       child: Container(
         width: double.maxFinite,
-        decoration: BoxDecoration(
-          color: widget.toolBarColor,
-        ),
+        decoration: BoxDecoration(color: widget.toolBarColor),
         child: Wrap(
           direction: widget.direction,
           alignment: widget.alignment,
@@ -418,60 +422,76 @@ class ToolBarState extends State<ToolBar> {
     for (int i = 0; i < _toolbarList.length; i++) {
       switch (_toolbarList[i].style) {
         case ToolBarStyle.bold:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['bold'] == true);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['bold'] == true,
+          );
           break;
         case ToolBarStyle.italic:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['italic'] == true);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['italic'] == true,
+          );
           break;
         case ToolBarStyle.underline:
-          _toolbarList[i] = _toolbarList[i]
-              .copyWith(isActive: formatMap['underline'] == true);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['underline'] == true,
+          );
           break;
         case ToolBarStyle.strike:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['strike'] == true);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['strike'] == true,
+          );
           break;
         case ToolBarStyle.blockQuote:
-          _toolbarList[i] = _toolbarList[i]
-              .copyWith(isActive: formatMap['blockquote'] == true);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['blockquote'] == true,
+          );
           break;
         case ToolBarStyle.codeBlock:
-          _toolbarList[i] = _toolbarList[i]
-              .copyWith(isActive: formatMap['code-block'] == true);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive:
+                formatMap['code-block'] == "true" ||
+                formatMap['code-block'] == "plain",
+          );
           break;
         case ToolBarStyle.indentMinus:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['indent'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['indent'] != null,
+          );
           break;
         case ToolBarStyle.indentAdd:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['indent'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['indent'] != null,
+          );
           break;
         case ToolBarStyle.directionRtl:
-          _toolbarList[i] = _toolbarList[i]
-              .copyWith(isActive: formatMap['direction'] == 'rtl');
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['align'] == null,
+          );
           break;
         case ToolBarStyle.directionLtr:
-          _toolbarList[i] = _toolbarList[i]
-              .copyWith(isActive: formatMap['direction'] != 'rtl');
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['align'] == 'right',
+          );
           break;
         case ToolBarStyle.size:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['size'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['size'] != null,
+          );
           break;
         case ToolBarStyle.headerOne:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['header'] == 1);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['header'] == 1,
+          );
           break;
         case ToolBarStyle.headerTwo:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['header'] == 2);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['header'] == 2,
+          );
           break;
         case ToolBarStyle.color:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['color'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['color'] != null,
+          );
           try {
             if (formatMap['color'] != null) {
               if (formatMap['color'].runtimeType.toString() ==
@@ -489,32 +509,39 @@ class ToolBarState extends State<ToolBar> {
           break;
         case ToolBarStyle.align:
           formatMap['align'] ??= '';
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['align'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['align'] != null,
+          );
           break;
         case ToolBarStyle.listOrdered:
-          _toolbarList[i] = _toolbarList[i]
-              .copyWith(isActive: formatMap['list'] == 'ordered');
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['list'] == 'ordered',
+          );
           break;
         case ToolBarStyle.listBullet:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['list'] == 'bullet');
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['list'] == 'bullet',
+          );
           break;
         case ToolBarStyle.image:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['image'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['image'] != null,
+          );
           break;
         case ToolBarStyle.video:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['video'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['video'] != null,
+          );
           break;
         case ToolBarStyle.clean:
-          _toolbarList[i] =
-              _toolbarList[i].copyWith(isActive: formatMap['clean'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['clean'] != null,
+          );
           break;
         case ToolBarStyle.background:
-          _toolbarList[i] = _toolbarList[i]
-              .copyWith(isActive: formatMap['background'] != null);
+          _toolbarList[i] = _toolbarList[i].copyWith(
+            isActive: formatMap['background'] != null,
+          );
           try {
             if (formatMap['background'] != null) {
               if (formatMap['background'].runtimeType.toString() ==
@@ -551,37 +578,46 @@ class ToolBarState extends State<ToolBar> {
     for (int i = 0; i < _toolbarList.length; i++) {
       var toolbarItem = _toolbarList[i];
       if (toolbarItem.style == ToolBarStyle.size) {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
-            child: Padding(
-              padding: _buttonPadding,
-              child: _fontSizeDD(),
-            )));
+            child: Padding(padding: _buttonPadding, child: _fontSizeDD()),
+          ),
+        );
       } else if (toolbarItem.style == ToolBarStyle.align) {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
             child: Padding(
               padding: _buttonPadding,
               child: SizedBox(
-                  width: widget.iconSize,
-                  height: widget.iconSize,
-                  child: _alignDD()),
-            )));
+                width: widget.iconSize,
+                height: widget.iconSize,
+                child: _alignDD(),
+              ),
+            ),
+          ),
+        );
       } else if (toolbarItem.style == ToolBarStyle.color) {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
             child: Padding(
               padding: _buttonPadding,
               child: SizedBox(
-                  width: widget.iconSize,
-                  height: widget.iconSize,
-                  child: _getFontColorWidget(i)),
-            )));
+                width: widget.iconSize,
+                height: widget.iconSize,
+                child: _getFontColorWidget(i),
+              ),
+            ),
+          ),
+        );
       } else if (toolbarItem.style == ToolBarStyle.video) {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
             child: Padding(
@@ -608,9 +644,12 @@ class ToolBarState extends State<ToolBar> {
                   widget.controller.embedVideo(v);
                 },
               ),
-            )));
+            ),
+          ),
+        );
       } else if (toolbarItem.style == ToolBarStyle.link) {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
             child: Padding(
@@ -628,31 +667,42 @@ class ToolBarState extends State<ToolBar> {
                   widget.controller.setFormat(format: 'link', value: v);
                 },
               ),
-            )));
+            ),
+          ),
+        );
       } else if (toolbarItem.style == ToolBarStyle.background) {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
             child: Padding(
               padding: _buttonPadding,
               child: SizedBox(
-                  width: widget.iconSize,
-                  height: widget.iconSize,
-                  child: _getFontBackgroundColorWidget(i)),
-            )));
+                width: widget.iconSize,
+                height: widget.iconSize,
+                child: _getFontBackgroundColorWidget(i),
+              ),
+            ),
+          ),
+        );
       } else if (toolbarItem.style == ToolBarStyle.addTable) {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
             child: Padding(
               padding: _buttonPadding,
               child: SizedBox(
-                  width: widget.iconSize,
-                  height: widget.iconSize,
-                  child: _getTablePickerWidget(i, context)),
-            )));
+                width: widget.iconSize,
+                height: widget.iconSize,
+                child: _getTablePickerWidget(i, context),
+              ),
+            ),
+          ),
+        );
       } else if (toolbarItem.style == ToolBarStyle.editTable) {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
             child: EditTableDropDown(
@@ -661,10 +711,13 @@ class ToolBarState extends State<ToolBar> {
               iconSize: widget.iconSize!,
               dropDownColor: widget.toolBarColor!,
               onOptionSelected: (type) => widget.controller.modifyTable(type),
-            )));
+            ),
+          ),
+        );
       } else if (toolbarItem.style == ToolBarStyle.separator) {
         if (widget.direction == Axis.horizontal) {
-          tempToolBarList.add(Tooltip(
+          tempToolBarList.add(
+            Tooltip(
               waitDuration: const Duration(milliseconds: 800),
               message: toolbarItem.style.name,
               child: Padding(
@@ -674,9 +727,12 @@ class ToolBarState extends State<ToolBar> {
                   width: 0.8,
                   color: widget.iconColor,
                 ),
-              )));
+              ),
+            ),
+          );
         } else {
-          tempToolBarList.add(Tooltip(
+          tempToolBarList.add(
+            Tooltip(
               waitDuration: const Duration(milliseconds: 800),
               message: toolbarItem.style.name,
               child: Padding(
@@ -686,10 +742,13 @@ class ToolBarState extends State<ToolBar> {
                   height: 0.8,
                   color: widget.iconColor,
                 ),
-              )));
+              ),
+            ),
+          );
         }
       } else {
-        tempToolBarList.add(Tooltip(
+        tempToolBarList.add(
+          Tooltip(
             waitDuration: const Duration(milliseconds: 800),
             message: toolbarItem.style.name,
             child: ToolBarItem(
@@ -708,10 +767,12 @@ class ToolBarState extends State<ToolBar> {
                   print('tapping the toolbar ITEMS');
                   widget.controller.redo();
                 } else if (toolbarItem.style == ToolBarStyle.image) {
-                  await ImageSelector(onImagePicked: (value) {
-                    _formatMap['image'] = value;
-                    widget.controller.embedImage(value);
-                  }).pickFiles();
+                  await ImageSelector(
+                    onImagePicked: (value) {
+                      _formatMap['image'] = value;
+                      widget.controller.embedImage(value);
+                    },
+                  ).pickFiles();
                 } else if (toolbarItem.style == ToolBarStyle.clean) {
                   List<ToolBarItem> tempList = [];
                   for (var value in _toolbarList) {
@@ -725,39 +786,46 @@ class ToolBarState extends State<ToolBar> {
                       element = element.copyWith(isActive: false);
                     }
                   }
-                  toolbarItem =
-                      toolbarItem.copyWith(isActive: !toolbarItem.isActive);
+                  toolbarItem = toolbarItem.copyWith(
+                    isActive: !toolbarItem.isActive,
+                  );
                 } else if (toolbarItem.style == ToolBarStyle.headerTwo) {
                   for (var element in _toolbarList) {
                     if (element.style == ToolBarStyle.headerOne) {
                       element = element.copyWith(isActive: false);
                     }
                   }
-                  toolbarItem =
-                      toolbarItem.copyWith(isActive: !toolbarItem.isActive);
+                  toolbarItem = toolbarItem.copyWith(
+                    isActive: !toolbarItem.isActive,
+                  );
                 } else {
-                  toolbarItem =
-                      toolbarItem.copyWith(isActive: !toolbarItem.isActive);
+                  toolbarItem = toolbarItem.copyWith(
+                    isActive: !toolbarItem.isActive,
+                  );
                 }
-                Map<String, dynamic> getFormat =
-                    _getFormatByStyle(toolbarItem.style, toolbarItem.isActive);
+                Map<String, dynamic> getFormat = _getFormatByStyle(
+                  
+                  toolbarItem.style,
+                  toolbarItem.isActive,
+                );
+                print("This is the format of the button $getFormat");
                 widget.controller.setFormat(
-                    format: getFormat['format'], value: getFormat['value']);
-
-                if (_formatMap['direction'] == 'rtl') {
-                  widget.controller.setFormat(format: 'align', value: 'right');
-                }
+                  format: getFormat['format'],
+                  value: getFormat['value'],
+                );
+                // if (_formatMap['direction'] == 'rtl') {
+                //   widget.controller.setFormat(format: 'align', value: 'right');
+                // }
                 setState(() {});
               },
-            )));
+            ),
+          ),
+        );
       }
     }
     if (widget.customButtons != null && widget.customButtons!.isNotEmpty) {
       for (var element in widget.customButtons!) {
-        tempToolBarList.add(Padding(
-          padding: _buttonPadding,
-          child: element,
-        ));
+        tempToolBarList.add(Padding(padding: _buttonPadding, child: element));
       }
     }
     return tempToolBarList;
@@ -782,9 +850,9 @@ class ToolBarState extends State<ToolBar> {
       case ToolBarStyle.indentMinus:
         return {'format': 'indent', 'value': '-1'};
       case ToolBarStyle.directionRtl:
-        return {'format': 'direction', 'value': 'rtl'};
+        return {'format': 'align', 'value': ''};
       case ToolBarStyle.directionLtr:
-        return {'format': 'direction', 'value': ''};
+        return {'format': 'align', 'value': 'right'};
       case ToolBarStyle.size:
         return {'format': 'size', 'value': 'small'};
       case ToolBarStyle.color:
@@ -826,62 +894,74 @@ class ToolBarState extends State<ToolBar> {
           alignedDropdown: true,
           padding: EdgeInsets.zero,
           child: DropdownButton(
-              dropdownColor: widget.toolBarColor,
-              alignment: Alignment.centerLeft,
-              selectedItemBuilder: (context) {
-                return [
-                  _fontSelectionTextItem(type: 'Small'),
-                  _fontSelectionTextItem(type: 'Normal'),
-                  _fontSelectionTextItem(type: 'Large'),
-                  _fontSelectionTextItem(type: 'Huge'),
-                ];
-              },
-              isDense: true,
-              value: _formatMap['size'] ?? 'normal',
-              style: TextStyle(fontSize: 12, color: widget.iconColor!),
-              items: [
-                _fontSizeItem(type: 'Small', fontSize: 8),
-                _fontSizeItem(type: 'Normal', fontSize: 12),
-                _fontSizeItem(type: 'Large', fontSize: 16),
-                _fontSizeItem(type: 'Huge', fontSize: 20),
-              ],
-              onChanged: (value) {
-                _formatMap['size'] = value;
-                widget.controller.setFormat(
-                    format: 'size', value: value == 'normal' ? '' : value);
-                setState(() {});
-              }),
+            dropdownColor: widget.toolBarColor,
+            alignment: Alignment.centerLeft,
+            selectedItemBuilder: (context) {
+              return [
+                _fontSelectionTextItem(type: 'Small'),
+                _fontSelectionTextItem(type: 'Normal'),
+                _fontSelectionTextItem(type: 'Large'),
+                _fontSelectionTextItem(type: 'Huge'),
+              ];
+            },
+            isDense: true,
+            value: _formatMap['size'] ?? 'normal',
+            style: TextStyle(fontSize: 12, color: widget.iconColor!),
+            items: [
+              _fontSizeItem(type: 'Small', fontSize: 8),
+              _fontSizeItem(type: 'Normal', fontSize: 12),
+              _fontSizeItem(type: 'Large', fontSize: 16),
+              _fontSizeItem(type: 'Huge', fontSize: 20),
+            ],
+            onChanged: (value) {
+              _formatMap['size'] = value;
+              widget.controller.setFormat(
+                format: 'size',
+                value: value == 'normal' ? '' : value,
+              );
+              setState(() {});
+            },
+          ),
         ),
       ),
     );
   }
 
-  DropdownMenuItem _fontSizeItem(
-      {required String type, required double fontSize}) {
+  DropdownMenuItem _fontSizeItem({
+    required String type,
+    required double fontSize,
+  }) {
     return DropdownMenuItem(
-        value: type.toLowerCase(),
-        child: WebViewAware(
-          child: Text(type,
-              style: TextStyle(
-                  fontSize: fontSize,
-                  color: _formatMap['size'] == type.toLowerCase()
-                      ? widget.activeIconColor
-                      : widget.iconColor!,
-                  fontWeight: FontWeight.bold)),
-        ));
+      value: type.toLowerCase(),
+      child: WebViewAware(
+        child: Text(
+          type,
+          style: TextStyle(
+            fontSize: fontSize,
+            color:
+                _formatMap['size'] == type.toLowerCase()
+                    ? widget.activeIconColor
+                    : widget.iconColor!,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
-  Widget _fontSelectionTextItem({
-    required String type,
-  }) {
+  Widget _fontSelectionTextItem({required String type}) {
     return SizedBox(
-      child: Text(type,
-          style: TextStyle(
-              fontSize: 14,
-              color: type.toLowerCase() != 'normal'
+      child: Text(
+        type,
+        style: TextStyle(
+          fontSize: 14,
+          color:
+              type.toLowerCase() != 'normal'
                   ? widget.activeIconColor
                   : widget.iconColor!,
-              fontWeight: FontWeight.bold)),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -890,28 +970,30 @@ class ToolBarState extends State<ToolBar> {
       child: ButtonTheme(
         padding: EdgeInsets.zero,
         child: DropdownButton<String>(
-            dropdownColor: widget.toolBarColor,
-            icon: const SizedBox(
-              width: 0,
-            ),
-            focusColor: Colors.transparent,
-            alignment: Alignment.bottomCenter,
-            isDense: true,
-            value: (_formatMap['align'] == '' || _formatMap['align'] == null)
-                ? 'left'
-                : _formatMap['align'],
-            items: [
-              _getAlignDDItem('left'),
-              _getAlignDDItem('center'),
-              _getAlignDDItem('right'),
-              _getAlignDDItem('justify'),
-            ],
-            onChanged: (value) {
-              _formatMap['align'] = value == 'left' ? '' : value;
-              widget.controller
-                  .setFormat(format: 'align', value: _formatMap['align']);
-              setState(() {});
-            }),
+          dropdownColor: widget.toolBarColor,
+          icon: const SizedBox(width: 0),
+          focusColor: Colors.transparent,
+          alignment: Alignment.bottomCenter,
+          isDense: true,
+          value:
+              (_formatMap['align'] == '' || _formatMap['align'] == null)
+                  ? 'left'
+                  : _formatMap['align'],
+          items: [
+            _getAlignDDItem('left'),
+            _getAlignDDItem('center'),
+            _getAlignDDItem('right'),
+            _getAlignDDItem('justify'),
+          ],
+          onChanged: (value) {
+            _formatMap['align'] = value == 'left' ? '' : value;
+            widget.controller.setFormat(
+              format: 'align',
+              value: _formatMap['align'],
+            );
+            setState(() {});
+          },
+        ),
       ),
     );
   }
@@ -930,9 +1012,10 @@ class ToolBarState extends State<ToolBar> {
       child: WebViewAware(
         child: Icon(
           icon,
-          color: _formatMap['align'] == type
-              ? widget.activeIconColor
-              : widget.iconColor,
+          color:
+              _formatMap['align'] == type
+                  ? widget.activeIconColor
+                  : widget.iconColor,
           size: widget.iconSize,
         ),
       ),
@@ -951,8 +1034,10 @@ class ToolBarState extends State<ToolBar> {
         onColorPicked: (color) {
           _formatMap['color'] = color;
           _toolbarList[i] = _toolbarList[i].copyWith(isActive: true);
-          widget.controller
-              .setFormat(format: 'color', value: _formatMap['color']);
+          widget.controller.setFormat(
+            format: 'color',
+            value: _formatMap['color'],
+          );
           setState(() {});
           if (_fontColorKey.currentState != null) {
             _fontColorKey.currentState!.hideOverlay();
@@ -974,17 +1059,20 @@ class ToolBarState extends State<ToolBar> {
                   'A',
                   maxLines: 1,
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _formatMap['color'] != null
-                          ? widget.activeIconColor
-                          : widget.iconColor,
-                      fontSize: widget.iconSize! - 5),
+                    fontWeight: FontWeight.bold,
+                    color:
+                        _formatMap['color'] != null
+                            ? widget.activeIconColor
+                            : widget.iconColor,
+                    fontSize: widget.iconSize! - 5,
+                  ),
                 ),
               ),
               Container(
-                color: _formatMap['color'] != null
-                    ? HexColor.fromHex(_formatMap['color'])
-                    : Colors.black,
+                color:
+                    _formatMap['color'] != null
+                        ? HexColor.fromHex(_formatMap['color'])
+                        : Colors.black,
                 height: 3,
                 width: widget.iconSize! - 3,
               ),
@@ -1008,8 +1096,10 @@ class ToolBarState extends State<ToolBar> {
           _formatMap['background'] = color;
           _toolbarList[i] = _toolbarList[i].copyWith(isActive: true);
 
-          widget.controller
-              .setFormat(format: 'background', value: _formatMap['background']);
+          widget.controller.setFormat(
+            format: 'background',
+            value: _formatMap['background'],
+          );
           setState(() {});
           if (_fontBgColorKey.currentState != null) {
             _fontBgColorKey.currentState!.hideOverlay();
@@ -1022,9 +1112,10 @@ class ToolBarState extends State<ToolBar> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             border: Border.all(width: 0.1),
-            color: _formatMap['background'] != null
-                ? HexColor.fromHex(_formatMap['background'])
-                : Colors.transparent,
+            color:
+                _formatMap['background'] != null
+                    ? HexColor.fromHex(_formatMap['background'])
+                    : Colors.transparent,
           ),
           height: widget.iconSize,
           width: widget.iconSize,
@@ -1034,11 +1125,13 @@ class ToolBarState extends State<ToolBar> {
               'A',
               maxLines: 1,
               style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: _formatMap['background'] != null
-                      ? widget.activeIconColor
-                      : widget.iconColor,
-                  fontSize: widget.iconSize! - 1),
+                fontWeight: FontWeight.w600,
+                color:
+                    _formatMap['background'] != null
+                        ? widget.activeIconColor
+                        : widget.iconColor,
+                fontSize: widget.iconSize! - 1,
+              ),
             ),
           ),
         ),
@@ -1084,60 +1177,60 @@ class ToolBarState extends State<ToolBar> {
 
   void _showTablePickerDialog(BuildContext context) {
     showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: EdgeInsets.zero,
-            content: WebViewAware(
-              child: Builder(
-                builder: (context) {
-                  return SizedBox(
-                    width: 300,
-                    height: 310,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(
-                              width: 15,
-                            ),
-                            const Expanded(
-                                child: Text(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding: EdgeInsets.zero,
+          content: WebViewAware(
+            child: Builder(
+              builder: (context) {
+                return SizedBox(
+                  width: 300,
+                  height: 310,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(width: 15),
+                          const Expanded(
+                            child: Text(
                               'Select Rows x Columns',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w600),
-                            )),
-                            IconButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                icon: const Icon(Icons.close))
-                          ],
-                        ),
-                        Expanded(
-                          child: TablePicker(
-                            rowCount: 8,
-                            width: 300,
-                            onTablePicked: (int row, int column) {
-                              widget.controller.insertTable(row, column);
-                              Navigator.of(context).pop();
-                            },
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: TablePicker(
+                          rowCount: 8,
+                          width: 300,
+                          onTablePicked: (int row, int column) {
+                            widget.controller.insertTable(row, column);
+                            Navigator.of(context).pop();
+                          },
                         ),
-                        const SizedBox(
-                          height: 10,
-                        )
-                      ],
-                    ),
-                  );
-                },
-              ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 }
 
