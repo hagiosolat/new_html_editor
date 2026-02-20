@@ -445,14 +445,15 @@ class EditorRepository {
             quilleditor.on('selection-change', function(range, oldRange, source)  {
              /// console.log('selection changed');
               onRangeChanged();
+              const existingComment = getCommentAtRange(range.index, range.length);
               if($kIsWeb){
               OnSelectionChanged(getSelectionRange());
               }else{
               OnSelectionChanged.postMessage(getSelectionRange());
-              }                
+              }               
             });   
 
-               quilleditor.on('text-change', () => {
+            quilleditor.on('text-change', () => {
             sendCommentsToFlutter();
             });
 

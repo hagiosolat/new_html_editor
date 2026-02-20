@@ -37,125 +37,272 @@ class CommentItemWidget extends StatefulWidget {
 class _CommentItemWidgetState extends State<CommentItemWidget> {
   String commentText = '';
   int threadIndex = 0;
+  int commentIndex = 0;
+  String commentId = '';
+  bool showModal = false;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onCardClick,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color:
-              widget.comment.id == widget.activeCommentId
-                  ? Colors.amber.shade50
-                  : Colors.white,
-          border: Border.all(
-            color:
-                widget.comment.id == widget.activeCommentId
-                    ? Colors.amber
-                    : Colors.grey.shade300,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //Quoted Text
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade100,
-                borderRadius: BorderRadius.circular(4),
-                border: Border(left: BorderSide(color: Colors.amber, width: 3)),
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: widget.onCardClick,
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color:
+                  widget.comment.id == widget.activeCommentId
+                      ? Colors.amber.shade50
+                      : Colors.white,
+              border: Border.all(
+                color:
+                    widget.comment.id == widget.activeCommentId
+                        ? Colors.amber
+                        : Colors.grey.shade300,
               ),
-              child: Text(
-                widget.comment.commentedText,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: Color(0xFF7A7060),
-                ),
-              ),
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(height: 12),
-            //Thread of comments
-            //   if (kIsWeb)
-            ...widget.comment.thread.asMap().entries.map((element) {
-              final index = element.key;
-              final reply = element.value;
-              return CommentReplyWidget(
-                commentId: widget.comment.id,
-                index: index,
-                reply: reply,
-                controller: widget.controller,
-                onEditPressed: (value, index) {
-                  widget.onEditPressed(true);
-                  widget.enableCommentId(widget.comment.id);
-                  widget.controller.setActiveComment(widget.comment.id);
-                  setState(() {
-                    commentText = value;
-                    threadIndex = index;
-                  });
-                },
-                ondeleteButton: widget.ondeleteButton,
-              );
-            }),
-            //Add reply button
-            const SizedBox(height: 8),
-            widget.isReply && widget.activeCommentId == widget.comment.id
-                ? CommentTextField(
-                  commentBody:
-                      widget.isEditingMode &&
-                              widget.activeCommentId == widget.comment.id
-                          ? commentText
-                          : '',
-                  onCommentClick: (value) {
-                    widget.controller.addComment(
-                      value,
-                      commentId: widget.comment.id,
-                    );
-                    if (!kIsWeb) {
-                      widget.updateLocalData!(value, widget.comment.id, null);
-                    }
-                    widget.onReplyPressed(false);
-                  },
-                  onCancelPressed: () {
-                    widget.onEditPressed(false);
-                    widget.onReplyPressed(false);
-                  },
-                  onEditUpdated: (value) {
-                    widget.onEditPressed(false);
-                    widget.controller.editComment(
-                      widget.comment.id,
-                      threadIndex,
-                      value,
-                    );
-                    if (!kIsWeb) {
-                      widget.updateLocalData!(
-                        value,
-                        widget.comment.id,
-                        threadIndex,
-                      );
-                    }
-                  },
-                )
-                : TextButton.icon(
-                  onPressed: () {
-                    widget.enableCommentId(widget.comment.id);
-                    widget.onReplyPressed(true);
-                    widget.controller.setActiveComment(widget.comment.id);
-                  },
-                  label: const Text("Reply"),
-                  icon: const Icon(Icons.reply, size: 16),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.blue,
-                    textStyle: const TextStyle(fontSize: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                //Quoted Text
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade100,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border(
+                      left: BorderSide(color: Colors.amber, width: 3),
+                    ),
+                  ),
+                  child: Text(
+                    widget.comment.commentedText,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: Color(0xFF7A7060),
+                    ),
                   ),
                 ),
-          ],
+                const SizedBox(height: 12),
+                //Thread of comments
+                //   if (kIsWeb)
+                ...widget.comment.thread.asMap().entries.map((element) {
+                  final index = element.key;
+                  final reply = element.value;
+                  return Stack(
+                    children: [
+                      CommentReplyWidget(
+                        commentId: widget.comment.id,
+                        index: index,
+                        reply: reply,
+                        controller: widget.controller,
+                        onEditPressed: (value, index) {
+                          widget.onEditPressed(true);
+                          widget.enableCommentId(widget.comment.id);
+                          widget.controller.setActiveComment(widget.comment.id);
+                          setState(() {
+                            commentText = value;
+                            threadIndex = index;
+                          });
+                        },
+                        ondeletingComment: (delCommentId, index, delShow) {
+                          widget.enableCommentId(widget.comment.id);
+                          widget.controller.setActiveComment(widget.comment.id);
+                          widget.onReplyPressed(false);
+                          if (delShow) {
+                            setState(() {
+                              showModal = delShow;
+                              commentId = delCommentId;
+                              commentIndex = index;
+                            });
+                          }
+                        },
+                        ondeleteButton: widget.ondeleteButton,
+                      ),
+                      //THIS IS THE OPTION TO DELETE EACH COMMENTS
+                      if (commentIndex == element.key &&
+                          widget.comment.id == widget.activeCommentId &&
+                          widget.comment.thread.length > 1 &&
+                          showModal)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(80),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 5,
+                              children: [
+                                const Text(
+                                  "Delete Comment",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  spacing: 7,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        widget.controller.deleteCommentReply(
+                                          commentId,
+                                          commentIndex,
+                                        );
+                                        setState(() {
+                                          showModal = false;
+                                        });
+                                      },
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(fontSize: 10),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          showModal = false;
+                                        });
+                                      },
+                                      child: const Text(
+                                        'Cancel',
+                                        style: TextStyle(fontSize: 10),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
+                //Add reply button
+                const SizedBox(height: 8),
+                widget.isReply && widget.activeCommentId == widget.comment.id
+                    ? CommentTextField(
+                      commentBody:
+                          widget.isEditingMode &&
+                                  widget.activeCommentId == widget.comment.id
+                              ? commentText
+                              : '',
+                      onCommentClick: (value) {
+                        widget.controller.addComment(
+                          value,
+                          commentId: widget.comment.id,
+                        );
+                        if (!kIsWeb) {
+                          widget.updateLocalData!(
+                            value,
+                            widget.comment.id,
+                            null,
+                          );
+                        }
+                        widget.onReplyPressed(false);
+                      },
+                      onCancelPressed: () {
+                        widget.onEditPressed(false);
+                        widget.onReplyPressed(false);
+                      },
+                      onEditUpdated: (value) {
+                        widget.onEditPressed(false);
+                        widget.controller.editComment(
+                          widget.comment.id,
+                          threadIndex,
+                          value,
+                        );
+                        if (!kIsWeb) {
+                          widget.updateLocalData!(
+                            value,
+                            widget.comment.id,
+                            threadIndex,
+                          );
+                        }
+                      },
+                    )
+                    : TextButton.icon(
+                      onPressed: () {
+                        widget.enableCommentId(widget.comment.id);
+                        widget.onReplyPressed(true);
+                        widget.controller.setActiveComment(widget.comment.id);
+                      },
+                      label: const Text("Reply"),
+                      icon: const Icon(Icons.reply, size: 16),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.blue,
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+              ],
+            ),
+          ),
         ),
-      ),
+        if (widget.activeCommentId == widget.comment.id &&
+            showModal &&
+            widget.comment.thread.length == 1)
+          Positioned.fill(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withAlpha(100),
+                //  border: Border.all(color: Colors.black),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 5,
+                children: [
+                  const Text(
+                    "Delete Comment",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    spacing: 7,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          widget.controller.deleteCommentReply(
+                            commentId,
+                            commentIndex,
+                          );
+                          setState(() {
+                            showModal = false;
+                          });
+                        },
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(fontSize: 10),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            showModal = false;
+                          });
+                        },
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(fontSize: 10),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -168,6 +315,7 @@ class CommentReplyWidget extends StatelessWidget {
     required this.reply,
     required this.controller,
     required this.onEditPressed,
+    this.ondeletingComment,
     this.ondeleteButton,
   });
   final String commentId;
@@ -175,6 +323,7 @@ class CommentReplyWidget extends StatelessWidget {
   final CommentReply reply;
   final QuillEditorController controller;
   final Function(String, int) onEditPressed;
+  final Function(String, int, bool)? ondeletingComment;
   final Function(String, int)? ondeleteButton;
 
   @override
@@ -228,9 +377,11 @@ class CommentReplyWidget extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.delete, size: 14),
                 onPressed: () {
-                  controller.deleteCommentReply(commentId, index);
                   if (!kIsWeb) {
+                    controller.deleteCommentReply(commentId, index);
                     ondeleteButton!(commentId, index);
+                  } else {
+                    ondeletingComment!(commentId, index, true);
                   }
                 },
                 padding: EdgeInsets.zero,

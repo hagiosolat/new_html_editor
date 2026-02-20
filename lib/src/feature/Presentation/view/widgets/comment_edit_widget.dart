@@ -28,6 +28,7 @@ class CommentTextField extends StatefulWidget {
 
 class _CommentTextFieldState extends State<CommentTextField> {
   TextEditingController commentController = TextEditingController();
+  String? errorText;
 
   @override
   void initState() {
@@ -72,6 +73,7 @@ class _CommentTextFieldState extends State<CommentTextField> {
                 TextField(
                   focusNode: widget.focusNode,
                   controller: commentController,
+                  style: TextStyle(fontSize: 10),
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(
                       vertical: 0,
@@ -82,7 +84,19 @@ class _CommentTextFieldState extends State<CommentTextField> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(50),
                     ),
+                    errorText: errorText,
                   ),
+                  onChanged: (value) {
+                    if (value.isEmpty) {
+                      setState(() {
+                        errorText = "This field should not be empty";
+                      });
+                    } else {
+                      setState(() {
+                        errorText = null;
+                      });
+                    }
+                  },
                 ),
                 const SizedBox(height: 5),
                 Row(
@@ -98,9 +112,21 @@ class _CommentTextFieldState extends State<CommentTextField> {
                     ElevatedButton(
                       onPressed: () {
                         if (widget.commentBody?.isNotEmpty == true) {
-                          widget.onEditUpdated!(commentController.text);
+                          if (commentController.text.isNotEmpty) {
+                            widget.onEditUpdated!(commentController.text);
+                          } else {
+                            setState(() {
+                              errorText = 'The field should not be empty';
+                            });
+                          }
                         } else {
-                          widget.onCommentClick(commentController.text);
+                          if (commentController.text.isNotEmpty) {
+                            widget.onCommentClick(commentController.text);
+                          } else {
+                            setState(() {
+                              errorText = 'The field should not be empty';
+                            });
+                          }
                         }
                       },
                       child: const Text(

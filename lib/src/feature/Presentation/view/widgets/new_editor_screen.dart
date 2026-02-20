@@ -159,6 +159,10 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   bool isReply = false;
   bool isEditingMode = false;
 
+  bool openComment = false;
+
+  bool showTextField = false;
+
   @override
   void initState() {
     // _currentHeight = MediaQuery.of(context).size.height;
@@ -392,7 +396,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                       _comments.isEmpty &&
                                               selectedTextlength < 1
                                           ? const SizedBox.shrink()
-                                          : Container(
+                                          : openComment
+                                          ? Container(
                                             decoration: BoxDecoration(
                                               color: Colors.grey.withAlpha(20),
                                               borderRadius:
@@ -414,10 +419,24 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                 ).size.height,
                                             //Comment Session implementation on the Editor
                                             child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
                                               children: [
                                                 //Condition to show just the commentTextField
+                                                IconButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      openComment = false;
+                                                    });
+                                                  },
+                                                  icon: Icon(
+                                                    Icons.close,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
                                                 if (selectedTextlength >= 1 &&
-                                                    kIsWeb)
+                                                    kIsWeb &&
+                                                    showTextField)
                                                   CommentTextField(
                                                     onCommentClick: (value) {
                                                       if (value.isEmpty) {
@@ -500,7 +519,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                 ),
                                               ],
                                             ),
-                                          ),
+                                          )
+                                          : const SizedBox.shrink(),
                                     ],
                                   ),
                                 ),
@@ -816,14 +836,17 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                       commentFocusNode.unfocus();
                     });
                   }
-                  var sel =
-                      selection != null
-                          ? SelectionModel.fromJson(jsonDecode(selection))
-                          : SelectionModel(index: 0, length: 0);
-                  setState(() {
-                    selectedTextlength = sel.length ?? 0;
-                    selectedTextPosition = sel.index ?? 0;
-                  });
+                  // var sel =
+                  //     selection != null
+                  //         ? SelectionModel.fromJson(jsonDecode(selection))
+                  //         : SelectionModel(index: 0, length: 0);
+                  // setState(() {
+                  //   selectedTextlength = sel.length ?? 0;
+                  //   selectedTextPosition = sel.index ?? 0;
+                  //   if (selectedTextlength >= 1) {
+                  //     openComment = true;
+                  //   }
+                  // });
                 } catch (e) {
                   if (!kReleaseMode) {
                     debugPrint(e.toString());
@@ -882,7 +905,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 }
               },
             ),
-
             DartCallback(
               name: 'VideoStateChange',
               callBack: (msg) {
@@ -948,6 +970,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   if (jsCommentId != null) {
                     setState(() {
                       activeCommentId = jsCommentId;
+                      if (jsCommentId.isNotEmpty) {
+                        openComment = true;
+                      }
                     });
                     if (activeCommentId.isNotEmpty &&
                         _comments.isNotEmpty &&
@@ -963,6 +988,42 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     widget.controller.setActiveComment(jsCommentId);
                   }
                 } catch (e) {}
+              },
+            ),
+            DartCallback(
+              name: 'SelectionChannel',
+              callBack: (selectionData) {
+                try {
+                  if (selectionData == null) return;
+                  final data = jsonDecode(selectionData);
+                  if (data['hidden'] == true) {
+                    setState(() {
+                      selectedTextlength = 0;
+                      selectedTextPosition = 0;
+                    });
+                    return;
+                  }
+                  //The selectedTextLength is greater than one
+                  //Then check if the selectedText is an existing commented text
+                  setState(() {
+                    selectedTextlength = data['length'];
+                    selectedTextPosition = data['index'];
+                    if (data['existingComment'] != null) {
+                      final existingComment = data['existingComment'];
+                      activeCommentId = existingComment['commentId'];
+                      showTextField = false;
+                      openComment = true;
+                      widget.controller.setActiveComment(
+                        existingComment['commentId'],
+                      );
+                    } else {
+                      showTextField = true;
+                      openComment = true;
+                    }
+                  });
+                } catch (e) {
+                  print(e.toString());
+                }
               },
             ),
             DartCallback(

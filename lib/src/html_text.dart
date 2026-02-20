@@ -424,12 +424,13 @@ String getQuillPage({
             
             quilleditor.on('selection-change', function(range, oldRange, source)  {
              /// console.log('selection changed');
-              onRangeChanged();
+              onRangeChanged();              
+              //Sending the selectionRange Hightlight to the UI
               if($kIsWeb){
               OnSelectionChanged(getSelectionRange());
               }else{
               OnSelectionChanged.postMessage(getSelectionRange());
-              }                
+              }                                    
             });   
 
             quilleditor.on('text-change', () => {
