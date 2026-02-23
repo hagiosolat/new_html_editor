@@ -421,16 +421,31 @@ String getQuillPage({
                   editorLoaded = true;
                 }             
             });
-            
+            let selectionTimeout = null;
+            let lastSelectionSent = null;
+
             quilleditor.on('selection-change', function(range, oldRange, source)  {
              /// console.log('selection changed');
-              onRangeChanged();              
-              //Sending the selectionRange Hightlight to the UI
-              if($kIsWeb){
-              OnSelectionChanged(getSelectionRange());
-              }else{
-              OnSelectionChanged.postMessage(getSelectionRange());
-              }                                    
+             if(selectionTimeout){
+             clearTimeout(selectionTimeout);
+             }
+              onRangeChanged();   
+              selectionTimeout = setTimeout(() => {
+              if(range && range.length > 0){
+                  const selectionKey = `\${range.index}, \${range.length}`;
+                if(selectionKey === lastSelectionSent){
+                console.log('Duplicate selection ignored');
+                return;
+                }
+                lastSelectionSent = selectionKey;
+                getSelectionRange(); 
+
+              } else if(range && range.length === 0){
+               lastSelectionSent = null;
+               getSelectionRange();
+              }               
+              }, 150);                      
+                                                
             });   
 
             quilleditor.on('text-change', () => {

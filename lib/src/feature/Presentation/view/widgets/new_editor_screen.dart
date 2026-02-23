@@ -236,6 +236,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
           backgroundColor: Colors.white,
           resizeToAvoidBottomInset: false,
           floatingActionButton:
+              //CONDITION TO RENDER THE TEXTFIELD FOR MOBILE VERSION
               !kIsWeb && selectedTextlength >= 1
                   ? ElevatedButton(
                     onPressed: () async {
@@ -827,33 +828,33 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 }
               },
             ),
-            DartCallback(
-              name: 'OnSelectionChanged',
-              callBack: (selection) {
-                try {
-                  if (_hasFocus) {
-                    setState(() {
-                      commentFocusNode.unfocus();
-                    });
-                  }
-                  // var sel =
-                  //     selection != null
-                  //         ? SelectionModel.fromJson(jsonDecode(selection))
-                  //         : SelectionModel(index: 0, length: 0);
-                  // setState(() {
-                  //   selectedTextlength = sel.length ?? 0;
-                  //   selectedTextPosition = sel.index ?? 0;
-                  //   if (selectedTextlength >= 1) {
-                  //     openComment = true;
-                  //   }
-                  // });
-                } catch (e) {
-                  if (!kReleaseMode) {
-                    debugPrint(e.toString());
-                  }
-                }
-              },
-            ),
+            // DartCallback(
+            //   name: 'OnSelectionChanged',
+            //   callBack: (selection) {
+            //     try {
+            //       if (_hasFocus) {
+            //         setState(() {
+            //           commentFocusNode.unfocus();
+            //         });
+            //       }
+            //       // var sel =
+            //       //     selection != null
+            //       //         ? SelectionModel.fromJson(jsonDecode(selection))
+            //       //         : SelectionModel(index: 0, length: 0);
+            //       // setState(() {
+            //       //   selectedTextlength = sel.length ?? 0;
+            //       //   selectedTextPosition = sel.index ?? 0;
+            //       //   if (selectedTextlength >= 1) {
+            //       //     openComment = true;
+            //       //   }
+            //       // });
+            //     } catch (e) {
+            //       if (!kReleaseMode) {
+            //         debugPrint(e.toString());
+            //       }
+            //     }
+            //   },
+            // ),
 
             /// callback to notify once editor is completely loaded
             DartCallback(
@@ -974,7 +975,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                         openComment = true;
                       }
                     });
-                    if (activeCommentId.isNotEmpty &&
+                    if (jsCommentId.isNotEmpty &&
                         _comments.isNotEmpty &&
                         !kIsWeb) {
                       showCommentModalForMobile(
@@ -995,6 +996,12 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               callBack: (selectionData) {
                 try {
                   if (selectionData == null) return;
+
+                    if (_hasFocus) {
+                    setState(() {
+                      commentFocusNode.unfocus();
+                    });
+                  }
                   final data = jsonDecode(selectionData);
                   if (data['hidden'] == true) {
                     setState(() {
@@ -1008,6 +1015,21 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   setState(() {
                     selectedTextlength = data['length'];
                     selectedTextPosition = data['index'];
+                    print("------------*********----------THIS IS THE CLICKED DATA $data");
+                    if (!kIsWeb &&
+                        data['existingComment'] != null &&
+                        _comments.isNotEmpty) {
+                      print(
+                        "***************CALLING THE MODALFOR MOBILE NOW888****************** ${data['existingComment']}",
+                      );
+                      showCommentModalForMobile(
+                        context,
+                        _comments,
+                        widget.controller,
+                        data['existingComment']['commentId'],
+                        isReply,
+                      );
+                    }
                     if (data['existingComment'] != null) {
                       final existingComment = data['existingComment'];
                       activeCommentId = existingComment['commentId'];

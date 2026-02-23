@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:new_html_editor/new_html_editor.dart';
 import 'package:new_html_editor/src/feature/Presentation/view/widgets/comment_edit_widget.dart';
+import 'package:new_html_editor/src/feature/Presentation/view/widgets/mobile_comment_ui.dart';
 
 class CommentItemWidget extends StatefulWidget {
   const CommentItemWidget({
@@ -107,6 +108,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                             threadIndex = index;
                           });
                         },
+                        //working with the web version for deleting comments
                         ondeletingComment: (delCommentId, index, delShow) {
                           widget.enableCommentId(widget.comment.id);
                           widget.controller.setActiveComment(widget.comment.id);
@@ -378,8 +380,11 @@ class CommentReplyWidget extends StatelessWidget {
                 icon: const Icon(Icons.delete, size: 14),
                 onPressed: () {
                   if (!kIsWeb) {
-                    controller.deleteCommentReply(commentId, index);
-                    ondeleteButton!(commentId, index);
+                    mobileDeleteCommentUI(context, () {
+                      controller.deleteCommentReply(commentId, index);
+                      ondeleteButton!(commentId, index);
+                      Navigator.pop(context);
+                    });
                   } else {
                     ondeletingComment!(commentId, index, true);
                   }

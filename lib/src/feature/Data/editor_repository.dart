@@ -441,16 +441,34 @@ class EditorRepository {
                  // editorLoaded = true;
                 }             
             });
-            
+              let selectionTimeout = null;
+            let lastSelectionSent = null;
             quilleditor.on('selection-change', function(range, oldRange, source)  {
-             /// console.log('selection changed');
-              onRangeChanged();
-              const existingComment = getCommentAtRange(range.index, range.length);
-              if($kIsWeb){
-              OnSelectionChanged(getSelectionRange());
-              }else{
-              OnSelectionChanged.postMessage(getSelectionRange());
+            /// console.log('selection changed');
+             if(selectionTimeout){
+             clearTimeout(selectionTimeout);
+             }
+              onRangeChanged();   
+              selectionTimeout = setTimeout(() => {
+              if(range && range.length > 0){
+                  const selectionKey = `\${range.index}, \${range.length}`;
+                if(selectionKey === lastSelectionSent){
+                console.log('Duplicate selection ignored');
+                return;
+                }
+                lastSelectionSent = selectionKey;
+                getSelectionRange(); 
+
+              } else if(range && range.length === 0){
+               lastSelectionSent = null;
+               getSelectionRange();
               }               
+              }, 150);             
+              // if($kIsWeb){
+              // OnSelectionChanged(getSelectionRange());
+              // }else{
+              // OnSelectionChanged.postMessage(getSelectionRange());
+              // }               
             });   
 
             quilleditor.on('text-change', () => {

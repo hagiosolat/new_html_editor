@@ -174,3 +174,36 @@ class _MobileCommentScreenState extends State<MobileCommentDragScreen> {
     );
   }
 }
+
+void mobileDeleteCommentUI(BuildContext context, Function() ondelete) {
+  showDialog(
+    context: context,
+    builder:
+        (ctx) => AlertDialog(
+          // backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          content: const Text(
+            'Are you sure you want to delete the comment?',
+            style: TextStyle(height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('CANCEL'),
+            ),
+            ElevatedButton(
+              onPressed: ondelete,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('DELETE', style: TextStyle(letterSpacing: 1.1)),
+            ),
+          ],
+        ),
+  );
+}
