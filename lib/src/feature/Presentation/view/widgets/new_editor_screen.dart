@@ -432,7 +432,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                   },
                                                   icon: Icon(
                                                     Icons.close,
-                                                    fontWeight: FontWeight.bold,
+                                                    weight: 900.0,
                                                   ),
                                                 ),
                                                 if (selectedTextlength >= 1 &&
@@ -997,7 +997,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 try {
                   if (selectionData == null) return;
 
-                    if (_hasFocus) {
+                  if (_hasFocus) {
                     setState(() {
                       commentFocusNode.unfocus();
                     });
@@ -1015,13 +1015,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   setState(() {
                     selectedTextlength = data['length'];
                     selectedTextPosition = data['index'];
-                    print("------------*********----------THIS IS THE CLICKED DATA $data");
                     if (!kIsWeb &&
                         data['existingComment'] != null &&
                         _comments.isNotEmpty) {
-                      print(
-                        "***************CALLING THE MODALFOR MOBILE NOW888****************** ${data['existingComment']}",
-                      );
                       showCommentModalForMobile(
                         context,
                         _comments,
