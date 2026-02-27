@@ -14,7 +14,6 @@ import 'package:new_html_editor/src/feature/Presentation/view/widgets/show_web_v
 import 'package:new_html_editor/src/html_text.dart';
 import '../../../../core/edit_table_drop_down.dart';
 import '../../../../core/webviewx/src/models/scroll_position.dart';
-import '../../../../core/webviewx/src/models/selection_model.dart';
 import '../../../../core/webviewx/src/models/video_progress.dart';
 
 // ignore: must_be_immutable
@@ -162,6 +161,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   bool openComment = false;
 
   bool showTextField = false;
+  bool alreadyShowModal = false;
 
   @override
   void initState() {
@@ -977,14 +977,25 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     });
                     if (jsCommentId.isNotEmpty &&
                         _comments.isNotEmpty &&
-                        !kIsWeb) {
+                        !kIsWeb &&
+                        !alreadyShowModal) {
                       showCommentModalForMobile(
                         context,
                         _comments,
                         widget.controller,
                         activeCommentId,
                         isReply,
+                        (onclose) {
+                          if (onclose) {
+                            setState(() {
+                              alreadyShowModal = false;
+                            });
+                          }
+                        },
                       );
+                      setState(() {
+                        alreadyShowModal = true;
+                      });
                     }
                     widget.controller.setActiveComment(jsCommentId);
                   }
@@ -1015,16 +1026,25 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   setState(() {
                     selectedTextlength = data['length'];
                     selectedTextPosition = data['index'];
+                    //TO render the comments for mobile version when already
+                    // commented text is highlighted
                     if (!kIsWeb &&
                         data['existingComment'] != null &&
-                        _comments.isNotEmpty) {
+                        _comments.isNotEmpty &&
+                        !alreadyShowModal) {
                       showCommentModalForMobile(
                         context,
                         _comments,
                         widget.controller,
                         data['existingComment']['commentId'],
                         isReply,
+                        (onclose) {
+                          setState(() {
+                            alreadyShowModal = false;
+                          });
+                        },
                       );
+                      alreadyShowModal = true;
                     }
                     if (data['existingComment'] != null) {
                       final existingComment = data['existingComment'];

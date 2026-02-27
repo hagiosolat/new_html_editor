@@ -151,9 +151,10 @@ showCommentModalForMobile(
   QuillEditorController controller,
   String activeCommentId,
   bool isReply,
-) {
+  Function(bool) onclosedEvent,
+) async {
   if (!kIsWeb) {
-    showModalBottomSheet(
+    await showModalBottomSheet(
       enableDrag: true,
       barrierColor: Colors.transparent,
       showDragHandle: false,
@@ -167,8 +168,12 @@ showCommentModalForMobile(
           comment: comment,
           quillController: controller,
           initialPage: comment.indexWhere((e) => e.id == activeCommentId),
+          unfocus: () {
+            Navigator.pop(context);
+          },
         );
       },
     );
+    onclosedEvent(true);
   }
 }

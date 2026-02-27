@@ -10,11 +10,13 @@ class MobileCommentDragScreen extends StatefulWidget {
     required this.quillController,
     required this.activeCommentId,
     required this.initialPage,
+    required this.unfocus,
   });
   final List<Comment> comment;
   final QuillEditorController quillController;
   final String activeCommentId;
   final int initialPage;
+  final Function() unfocus;
 
   @override
   State<MobileCommentDragScreen> createState() => _MobileCommentScreenState();
@@ -118,15 +120,20 @@ class _MobileCommentScreenState extends State<MobileCommentDragScreen> {
                             },
                             ondeleteButton: (commentId, threadIndex) {
                               setState(() {
-                                for (var comment in comments) {
-                                  if (comment.id == commentId) {
-                                    if (comment.thread.length == 1) {
-                                      comments.removeWhere(
-                                        (element) => element.id == comment.id,
-                                      );
-                                      return;
-                                    } else {
-                                      comment.thread.removeAt(threadIndex);
+                                if (comments.length == 1 &&
+                                    comments.first.thread.length == 1) {
+                                  widget.unfocus();
+                                } else {
+                                  for (var comment in comments) {
+                                    if (comment.id == commentId) {
+                                      if (comment.thread.length == 1) {
+                                        comments.removeWhere(
+                                          (element) => element.id == comment.id,
+                                        );
+                                        return;
+                                      } else {
+                                        comment.thread.removeAt(threadIndex);
+                                      }
                                     }
                                   }
                                 }
