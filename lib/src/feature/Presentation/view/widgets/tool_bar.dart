@@ -804,11 +804,9 @@ class ToolBarState extends State<ToolBar> {
                   );
                 }
                 Map<String, dynamic> getFormat = _getFormatByStyle(
-                  
                   toolbarItem.style,
                   toolbarItem.isActive,
                 );
-                print("This is the format of the button $getFormat");
                 widget.controller.setFormat(
                   format: getFormat['format'],
                   value: getFormat['value'],
