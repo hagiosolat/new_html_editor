@@ -963,7 +963,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     });
                   }
                 } catch (e) {
-                  print("This is the error ${e.toString()}");
+                  debugPrint(e.toString());
                 }
               },
             ),
@@ -1063,7 +1063,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     }
                   });
                 } catch (e) {
-                  print(e.toString());
+                  debugPrint(e.toString());
                 }
               },
             ),
@@ -1197,11 +1197,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
         ),
         InkWell(
           onTap: () async {
-            var selectedText = await widget.controller.getSelectedText();
-            debugPrint('selectedText $selectedText');
-            var selectedHtmlText =
-                await widget.controller.getSelectedHtmlText();
-            debugPrint('selectedHtmlText $selectedHtmlText');
+            await widget.controller.getSelectedText();
+            await widget.controller.getSelectedHtmlText();
           },
           child: const Icon(Icons.add_circle, color: Colors.black),
         ),

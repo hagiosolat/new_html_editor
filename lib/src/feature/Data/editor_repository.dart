@@ -40,6 +40,7 @@ class EditorRepository {
   //   }
   // }
 
+  /// Unused currently
   String htmlLoader(Map<String, dynamic> params) {
     String fontFamily = params['fontFamily'];
     Color backgroundColor = params['backgroundColor'];
