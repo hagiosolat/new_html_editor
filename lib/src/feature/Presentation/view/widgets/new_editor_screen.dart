@@ -759,12 +759,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               name: 'ScrollReady',
               callBack: (message) {
                 if (message != null) {
+                  //I CAN SEND IT TO THIS PLACE FROM THE DATA LAYER...
                   if (kIsWeb) {
                     setScrollPosition(
-                      scrollPosition:
-                          widget.metaDataTotal['scrollPosition'],
+                      scrollPosition: widget.metaDataTotal['scrollPosition'],
                     );
                     setVideoPosition(
+                      //TODO: Get the List of videos coming from cloud Firestore and update it here.
                       videos: widget.metaData,
                     );
                   }
