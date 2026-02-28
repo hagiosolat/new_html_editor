@@ -751,17 +751,20 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 }
               },
             ),
+            // Web scroll restoration: triggered by JS window.load event.
+            // On web, scroll happens inside the webview via JS window.scrollTo().
+            // Mobile uses _waitAndJumptoSavedScrollPostion() instead,
+            // which scrolls the Flutter ScrollController wrapping the webview.
             DartCallback(
               name: 'ScrollReady',
               callBack: (message) {
                 if (message != null) {
-                  //I CAN SEND IT TO THIS PLACE FROM THE DATA LAYER...
                   if (kIsWeb) {
                     setScrollPosition(
-                      scrollPosition: widget.metaDataTotal['scrollPosition'],
+                      scrollPosition:
+                          widget.metaDataTotal['scrollPosition'],
                     );
                     setVideoPosition(
-                      //TODO: Get the List of videos coming from cloud Firestore and update it here.
                       videos: widget.metaData,
                     );
                   }
@@ -1225,6 +1228,10 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     });
   }
 
+  // Mobile scroll restoration: polls until content is rendered, then jumps.
+  // On mobile, scroll is controlled by Flutter's mobileScrollController.
+  // Web uses the ScrollReady DartCallback instead, which scrolls
+  // inside the webview via JS window.scrollTo().
   void _waitAndJumptoSavedScrollPostion() async {
     while (mobileScrollController.hasClients &&
         mobileScrollController.position.maxScrollExtent == 0.0) {
