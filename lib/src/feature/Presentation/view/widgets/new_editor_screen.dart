@@ -215,9 +215,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     //SetScroll Position for the first Option
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!kIsWeb && widget.isOutSideEditor) {
-        print(
-          "recalling the setting of the information afain-------------------------",
-        );
         setHtmlTextToEditor(widget.editorContent);
         setState(() {
           videoProgressMap.clear();
