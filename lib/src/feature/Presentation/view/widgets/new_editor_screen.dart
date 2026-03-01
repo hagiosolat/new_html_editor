@@ -215,9 +215,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     //SetScroll Position for the first Option
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!kIsWeb && widget.isOutSideEditor) {
-        print(
-          "recalling the setting of the information afain-------------------------",
-        );
         setHtmlTextToEditor(widget.editorContent);
         setState(() {
           videoProgressMap.clear();
@@ -754,6 +751,10 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 }
               },
             ),
+            // Web scroll restoration: triggered by JS window.load event.
+            // On web, scroll happens inside the webview via JS window.scrollTo().
+            // Mobile uses _waitAndJumptoSavedScrollPostion() instead,
+            // which scrolls the Flutter ScrollController wrapping the webview.
             DartCallback(
               name: 'ScrollReady',
               callBack: (message) {
@@ -963,7 +964,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     });
                   }
                 } catch (e) {
-                  print("This is the error ${e.toString()}");
+                  debugPrint(e.toString());
                 }
               },
             ),
@@ -1063,7 +1064,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                     }
                   });
                 } catch (e) {
-                  print(e.toString());
+                  debugPrint(e.toString());
                 }
               },
             ),
@@ -1197,11 +1198,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
         ),
         InkWell(
           onTap: () async {
-            var selectedText = await widget.controller.getSelectedText();
-            debugPrint('selectedText $selectedText');
-            var selectedHtmlText =
-                await widget.controller.getSelectedHtmlText();
-            debugPrint('selectedHtmlText $selectedHtmlText');
+            await widget.controller.getSelectedText();
+            await widget.controller.getSelectedHtmlText();
           },
           child: const Icon(Icons.add_circle, color: Colors.black),
         ),
@@ -1228,6 +1226,10 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     });
   }
 
+  // Mobile scroll restoration: polls until content is rendered, then jumps.
+  // On mobile, scroll is controlled by Flutter's mobileScrollController.
+  // Web uses the ScrollReady DartCallback instead, which scrolls
+  // inside the webview via JS window.scrollTo().
   void _waitAndJumptoSavedScrollPostion() async {
     while (mobileScrollController.hasClients &&
         mobileScrollController.position.maxScrollExtent == 0.0) {

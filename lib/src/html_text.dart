@@ -273,10 +273,10 @@ String getQuillPage({
                 editor.on('editor-change', function(eventName, ...args) {
                   try {
                     // args[0] will be delta
-                    var ops = args[0]['ops']
-                    if(ops === null) {
+                    if(!args[0] || !args[0]['ops']) {
                       return
                     }
+                    var ops = args[0]['ops']
                     var oldSelection = editor.getSelection(true)
                     var oldPos = oldSelection.index
                     var oldSelectionLength = oldSelection.length

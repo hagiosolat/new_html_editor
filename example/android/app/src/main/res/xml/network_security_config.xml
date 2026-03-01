@@ -7,4 +7,5 @@
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
-    </base-config> </network-security-config>
+    </base-config>
+</network-security-config>
