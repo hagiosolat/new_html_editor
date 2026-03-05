@@ -671,6 +671,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   if (!show) return const SizedBox.shrink();
                   return CommentTextField(
                     onCancelPressed: () {
+                      // Remove the pending dark grey background highlight
+                      widget.controller.setFormat(
+                        format: 'background',
+                        value: null,
+                        index: savedSelectionPosition,
+                        length: savedselectionLength,
+                      );
                       _selectionState.showModal.value = false;
                     },
                     onCommentClick: (value) {
