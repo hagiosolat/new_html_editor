@@ -16,7 +16,6 @@ import '../../../../core/edit_table_drop_down.dart';
 import '../../../../core/webviewx/src/models/scroll_position.dart';
 import '../../../../core/webviewx/src/models/video_progress.dart';
 
-// ignore: must_be_immutable
 class NewEditorScreen extends ConsumerStatefulWidget
     with WidgetsBindingObserver {
   NewEditorScreen({
@@ -24,7 +23,6 @@ class NewEditorScreen extends ConsumerStatefulWidget
     required this.editorContent,
     required this.metaData,
     required this.videosTotalDuration,
-    required this.isOutSideEditor,
     required this.metaDataTotal,
     required this.updateScrollProgress,
     required this.updateTotalProgress,
@@ -43,8 +41,6 @@ class NewEditorScreen extends ConsumerStatefulWidget
   final Function(dynamic, double) updateTotalProgress;
   final Function(Map<String, dynamic>) updateCurrentVideoProgress;
   final Function(Map<String, dynamic>, Map<String, dynamic>) getVideosUpdates;
-  bool isOutSideEditor;
-
   @override
   ConsumerState<NewEditorScreen> createState() => NewEditorScreenState();
 }
@@ -97,31 +93,14 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   int savedSelectionPosition = 0;
 
-  Map<String, dynamic> totalProgressMap = {};
-
-  Map<String, dynamic> videoProgressMap = {};
-
-  double totalInteractionProgress = 0.0;
+  final _progressState = EditorProgressState();
 
   ScrollController scrollController =
       ScrollController(); // TODO: Appears unused (mobileScrollController is used instead) - remove if not needed
 
   ScrollController mobileScrollController = ScrollController();
 
-  StreamController<num> progressController = StreamController();
-
-  StreamController<Map<String, dynamic>> totalVideoProgressController =
-      StreamController();
-
   String _initialContent = "";
-
-  double _currentPosition = 0.0;
-
-  double _videoProgress = 0.0;
-
-  num scrollength = 0.0;
-
-  num _progress = 0.0;
 
   bool isLoading = false;
 
@@ -151,7 +130,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   bool isEditingMode = false;
 
   /// Tracks whether we've already loaded the initial content into the editor.
-  /// Unlike widget.isOutSideEditor, this survives parent rebuilds.
+  /// Tracks whether we've already loaded the initial content into the editor.
+  /// Survives parent rebuilds (unlike a widget field which gets recreated).
   bool _hasLoadedInitialContent = false;
 
   @override
@@ -160,37 +140,47 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     _fontFamily = _editorTextStyle.fontFamily ?? 'Roboto';
     _encodedStyle = Uri.encodeFull(_fontFamily);
 
-    if (kIsWeb && widget.isOutSideEditor) {
+    if (kIsWeb && !_hasLoadedInitialContent) {
       SchedulerBinding.instance.scheduleFrameCallback((_) {
         // setHtmlTextToEditor(widget.editorContent);
         _hasLoadedInitialContent = true;
+        _progressState.loadFromWidget(
+          metaData: widget.metaData,
+          metaDataTotal: widget.metaDataTotal,
+        );
+        _progressState.updateVideoProgress(
+          videosTotalDuration: widget.videosTotalDuration,
+          getVideosUpdates: widget.getVideosUpdates,
+          videoDurationData: widget.videoDurationData,
+        );
+        _progressState.updateTotalProgress(
+          videosTotalDuration: widget.videosTotalDuration,
+          callback: widget.updateTotalProgress,
+        );
+        // _waitAndJumptoSavedScrollPostion();
         setState(() {
           isLoadingDone = false;
-          videoProgressMap.clear();
-          totalProgressMap.clear();
-          videoProgressMap = widget.metaData;
-          totalProgressMap = widget.metaDataTotal;
-          _updateTotalVideoProgress();
-          _getTotalProgress();
-          // _waitAndJumptoSavedScrollPostion();
-          widget.isOutSideEditor = false;
         });
       });
     }
     mobileScrollController.addListener(_onScroll);
     //CONTROLLER FOR TOTALPROGRESS
     //CONTROLLER FOR ARTICLE VIDEO PROGRESS
-    totalVideoProgressController.stream.listen((event) {
-      _updateTotalVideoProgress();
+    _progressState.totalVideoProgressController.stream.listen((event) {
+      _progressState.updateVideoProgress(
+        videosTotalDuration: widget.videosTotalDuration,
+        getVideosUpdates: widget.getVideosUpdates,
+        videoDurationData: widget.videoDurationData,
+      );
     });
     //ENABLE THE STREAM CONTROLLER TO LISTEN FOR DATA UPDATES
-    progressController.stream.listen((event) {
-      setState(() {
-        //THIS IS THE ARTICLE SCROLL PROGRESS ONLY WITHOUT CONSIDERING THE VIDEO DURATION.
-        _progress = event;
-        _getTotalProgress();
-        widget.updateScrollProgress(_progress);
-      });
+    _progressState.progressController.stream.listen((event) {
+      _progressState.scrollProgress.value = event.toDouble();
+      _progressState.updateTotalProgress(
+        videosTotalDuration: widget.videosTotalDuration,
+        callback: widget.updateTotalProgress,
+      );
+      widget.updateScrollProgress(_progressState.scrollProgress.value);
     });
     super.initState();
   }
@@ -209,11 +199,10 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   void dispose() {
     _selectionState.dispose();
     _comments.dispose();
+    _progressState.dispose();
     mobileScrollController.removeListener(_onScroll);
     mobileScrollController.dispose();
     scrollController.dispose();
-    progressController.close();
-    totalVideoProgressController.close();
     commentFocusNode.dispose();
     commentController.dispose();
     // widget.controller.dispose();
@@ -228,13 +217,16 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       if (!kIsWeb && !_hasLoadedInitialContent) {
         _hasLoadedInitialContent = true;
         setHtmlTextToEditor(widget.editorContent);
-        videoProgressMap.clear();
-        totalProgressMap.clear();
-        videoProgressMap = widget.metaData;
-        totalProgressMap = widget.metaDataTotal;
-        _updateTotalVideoProgress();
+        _progressState.loadFromWidget(
+          metaData: widget.metaData,
+          metaDataTotal: widget.metaDataTotal,
+        );
+        _progressState.updateVideoProgress(
+          videosTotalDuration: widget.videosTotalDuration,
+          getVideosUpdates: widget.getVideosUpdates,
+          videoDurationData: widget.videoDurationData,
+        );
         _waitAndJumptoSavedScrollPostion();
-        widget.isOutSideEditor = false;
       }
     });
     return SafeArea(
@@ -290,12 +282,21 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                     children: [
                                       toolbar(),
                                       if (isLoadingDone == true)
-                                        ProgressBars(
-                                          label:
-                                              'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                                          progress: totalInteractionProgress,
-                                          color: Colors.blue,
-                                          textColor: Colors.black,
+                                        ValueListenableBuilder<double>(
+                                          valueListenable:
+                                              _progressState.totalProgress,
+                                          builder:
+                                              (
+                                                context,
+                                                value,
+                                                _,
+                                              ) => ProgressBars(
+                                                label:
+                                                    'Total Progress ${(value * 100).toStringAsFixed(1)}%',
+                                                progress: value,
+                                                color: Colors.blue,
+                                                textColor: Colors.black,
+                                              ),
                                         ),
                                       if (isLoadingDone == true)
                                         Container(
@@ -303,12 +304,21 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                           color: Colors.grey,
                                         ),
                                       if (isLoadingDone == true)
-                                        ProgressBars(
-                                          label:
-                                              'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                                          progress: _videoProgress,
-                                          color: Colors.blueAccent,
-                                          textColor: Colors.black,
+                                        ValueListenableBuilder<double>(
+                                          valueListenable:
+                                              _progressState.videoProgress,
+                                          builder:
+                                              (
+                                                context,
+                                                value,
+                                                _,
+                                              ) => ProgressBars(
+                                                label:
+                                                    'Video Progress ${(value * 100).toStringAsFixed(1)}%',
+                                                progress: value,
+                                                color: Colors.blueAccent,
+                                                textColor: Colors.black,
+                                              ),
                                         ),
                                       if (isLoadingDone == true)
                                         Container(
@@ -316,12 +326,21 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                           color: Colors.grey,
                                         ),
                                       if (isLoadingDone == true)
-                                        ProgressBars(
-                                          label:
-                                              'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                                          progress: _progress.toDouble(),
-                                          color: Colors.lightBlue,
-                                          textColor: Colors.black,
+                                        ValueListenableBuilder<double>(
+                                          valueListenable:
+                                              _progressState.scrollProgress,
+                                          builder:
+                                              (
+                                                context,
+                                                value,
+                                                _,
+                                              ) => ProgressBars(
+                                                label:
+                                                    'Article Progress ${(value * 100).toStringAsFixed(1)}%',
+                                                progress: value,
+                                                color: Colors.lightBlue,
+                                                textColor: Colors.black,
+                                              ),
                                         ),
                                     ],
                                   ),
@@ -580,28 +599,41 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                             : Column(
                               children: [
                                 toolbar(),
-                                ProgressBars(
-                                  label:
-                                      'Total Progress ${(totalInteractionProgress * 100).toStringAsFixed(1)}%',
-                                  progress: totalInteractionProgress,
-                                  color: Colors.blue,
-                                  textColor: Colors.black,
+                                ValueListenableBuilder<double>(
+                                  valueListenable: _progressState.totalProgress,
+                                  builder:
+                                      (context, value, _) => ProgressBars(
+                                        label:
+                                            'Total Progress ${(value * 100).toStringAsFixed(1)}%',
+                                        progress: value,
+                                        color: Colors.blue,
+                                        textColor: Colors.black,
+                                      ),
                                 ),
                                 Container(height: 2, color: Colors.grey),
-                                ProgressBars(
-                                  label:
-                                      'Video Progress ${(_videoProgress * 100).toStringAsFixed(1)}%',
-                                  progress: _videoProgress,
-                                  color: Colors.blueAccent,
-                                  textColor: Colors.black,
+                                ValueListenableBuilder<double>(
+                                  valueListenable: _progressState.videoProgress,
+                                  builder:
+                                      (context, value, _) => ProgressBars(
+                                        label:
+                                            'Video Progress ${(value * 100).toStringAsFixed(1)}%',
+                                        progress: value,
+                                        color: Colors.blueAccent,
+                                        textColor: Colors.black,
+                                      ),
                                 ),
                                 Container(height: 2, color: Colors.grey),
-                                ProgressBars(
-                                  label:
-                                      'Article Progress ${(_progress.toDouble() * 100).toStringAsFixed(1)}%',
-                                  progress: _progress.toDouble(),
-                                  color: Colors.lightBlue,
-                                  textColor: Colors.black,
+                                ValueListenableBuilder<double>(
+                                  valueListenable:
+                                      _progressState.scrollProgress,
+                                  builder:
+                                      (context, value, _) => ProgressBars(
+                                        label:
+                                            'Article Progress ${(value * 100).toStringAsFixed(1)}%',
+                                        progress: value,
+                                        color: Colors.lightBlue,
+                                        textColor: Colors.black,
+                                      ),
                                 ),
                                 Expanded(
                                   child: SingleChildScrollView(
@@ -902,34 +934,34 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             DartCallback(
               name: 'GetVideoTracking',
               callBack: (timing) {
+                // From here I can get the current Position and then pass
+                // it to the Map
+                // print('--This is the timig $timing');
                 try {
                   if (timing != null) {
                     var video = VideoProgressTracking.fromJson(
                       jsonDecode(timing),
                     );
                     if (kIsWeb) {
-                      setState(() {
-                        // From here I can get the current Position and then pass
-                        // it to the Map
-                        // print('--This is the timig $timing');
-                        videoProgressMap[video.videoUrl] =
-                            video.currentPosition;
-                        totalProgressMap[video.videoUrl] =
-                            video.currentPosition;
-                        // _updateTotalVideoProgress();
-                        _getTotalProgress();
-                        //THE ESSENCE OF THE CONTROLLER MAP IS FOR RESUMPTION
-                        //FROM WHERE THE VIDEO LEFT OFF
-                        //   singleVideoDuration = video.totalDuration;
-                        //  print(videoProgressMap);
-                      });
-                      //TODO: Testting it
+                      //THE ESSENCE OF THE CONTROLLER MAP IS FOR RESUMPTION
+                      //FROM WHERE THE VIDEO LEFT OFF
+                      //   singleVideoDuration = video.totalDuration;
+                      //  print(videoProgressMap);
+                      _progressState.recordVideoPosition(
+                        video.videoUrl,
+                        video.currentPosition,
+                      );
+                      // _updateTotalVideoProgress();
+                      _progressState.updateTotalProgress(
+                        videosTotalDuration: widget.videosTotalDuration,
+                        callback: widget.updateTotalProgress,
+                      );
+                      //TODO: Testing it
                       widget.updateCurrentVideoProgress({
                         'articleID': '',
                         'videoUrl': video.videoUrl,
                         'currentPosition': video.currentPosition,
                       });
-                      totalVideoProgressController.add(videoProgressMap);
                     }
                   }
                 } catch (e) {
@@ -961,14 +993,14 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   if (message != null) {
                     var p0 = CustomScrollPosition.fromJson(jsonDecode(message));
                     if (kIsWeb) {
-                      setState(() {
-                        //_progress = p0.currentPosition ?? 0.0;
-                        scrollength = p0.maxScroll ?? 0.0;
-                        totalProgressMap['scrollPosition'] = p0.scrollTop;
-                        //This is the stream that will be sending the progress to the backend.
-                        progressController.add(p0.currentPosition ?? 0.0);
-                        //  _getTotalProgress();
-                      });
+                      _progressState.scrollLength = p0.maxScroll ?? 0.0;
+                      _progressState.totalProgressMap['scrollPosition'] =
+                          p0.scrollTop;
+                      //This is the stream that will be sending the progress to the backend.
+                      _progressState.progressController.add(
+                        p0.currentPosition ?? 0.0,
+                      );
+                      //  _getTotalProgress();
                     }
                   }
                 } catch (e) {
@@ -1132,22 +1164,21 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 try {
                   if (message != null) {
                     String videolink = message.toString();
-                    //  widget.watchedVideo!(message.toString());
                     if (kIsWeb) {
                     } else {
                       //MOBILE SESSION VIDEO UPDATE AT THE LOADING TIME
-                      setState(() {
-                        //TODO: There should be a condition to check if the videoLink is thesame as the one sent
-                        widget.videoDurationData[videolink];
-                        videoProgressMap[videolink] =
-                            widget.videoDurationData[videolink];
-                        totalProgressMap[videolink] =
-                            widget.videoDurationData[videolink];
-                        // }
-                        _getTotalProgress();
-                        // print(videoProgressMap);
-                        totalVideoProgressController.add(videoProgressMap);
-                      });
+                      //TODO: There should be a condition to check if the videoLink is thesame as the one sent
+                      _progressState.videoProgressMap[videolink] =
+                          widget.videoDurationData[videolink];
+                      _progressState.totalProgressMap[videolink] =
+                          widget.videoDurationData[videolink];
+                      _progressState.updateTotalProgress(
+                        videosTotalDuration: widget.videosTotalDuration,
+                        callback: widget.updateTotalProgress,
+                      );
+                      _progressState.totalVideoProgressController.add(
+                        _progressState.videoProgressMap,
+                      );
                     }
                   }
                 } catch (e) {
@@ -1224,28 +1255,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     );
   }
 
-  // Function for total progress
-  // TODO: This method calls setState() but is also called from inside other setState() blocks
-  // (e.g. progressController.stream.listen, GetVideoTracking). Nested setState is redundant -
-  // consider making this a plain method that updates fields, and let the caller's setState handle the rebuild.
-  void _getTotalProgress() {
-    /// Get the scroll Length Position
-    /// Get the total Duration, that would be the totalVideoDuration
-    //TODO: In updating the totalInteractionProgress include all the videos and the
-    //scrollPosition.
-    setState(() {
-      // [totalProgressMap] contains the scrollPosition and the video Data.
-      totalInteractionProgress =
-          (totalProgressMap.values.fold(
-            0.0,
-            (sum, progressTtotal) => sum + progressTtotal,
-          )) /
-          (widget.videosTotalDuration + scrollength.toDouble());
-      //A call back to be sent to the Main Application
-      widget.updateTotalProgress(totalProgressMap, totalInteractionProgress);
-    });
-  }
-
   // Mobile scroll restoration: polls until content is rendered, then jumps.
   // On mobile, scroll is controlled by Flutter's mobileScrollController.
   // Web uses the ScrollReady DartCallback instead, which scrolls
@@ -1265,29 +1274,14 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   // Listen to changes in the scroll position
   // This method will be called on every scroll event
   void _onScroll() {
-    setState(() {
-      _currentPosition =
-          mobileScrollController.position.pixels; // current position
-      scrollength = mobileScrollController.position.maxScrollExtent;
-      double progress = (_currentPosition / scrollength).abs(); // max position
-      totalProgressMap['scrollPosition'] = _currentPosition;
-      progressController.add(progress);
-    });
-  }
-
-  void _updateTotalVideoProgress() {
-    //TODO:videoProgressMap to be updated with the videoList data from backend upon loading.
-    if (videoProgressMap.isNotEmpty) {
-      _videoProgress =
-          (videoProgressMap.values.fold(
-                0.0,
-                (sum, progress) => sum + progress,
-              ) /
-              widget.videosTotalDuration);
-      widget.getVideosUpdates(videoProgressMap, widget.videoDurationData);
-    } else {
-      _videoProgress = 0.0;
-    }
+    _progressState.currentPosition = mobileScrollController.position.pixels;
+    _progressState.scrollLength =
+        mobileScrollController.position.maxScrollExtent;
+    double progress =
+        (_progressState.currentPosition / _progressState.scrollLength).abs();
+    _progressState.totalProgressMap['scrollPosition'] =
+        _progressState.currentPosition;
+    _progressState.progressController.add(progress);
   }
 
   /// Youtube mobile version dialog box
@@ -1312,20 +1306,23 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             // to the Map Controller to retrieve it back when resumed.
           },
           currentPosition: (currentPosition) {
-            setState(() {
-              videoProgressMap[youtubeLink] = currentPosition.inMilliseconds;
-              totalProgressMap[youtubeLink] = currentPosition.inMilliseconds;
-              //UPDATING THE CLOUD FIRESTORE WHEN PLAYING YOUTUBE VIDEO ON MOBILE
-              //TODO: Try it if it is not inside the setstate.
-              //TODO: Testing it
-              widget.updateCurrentVideoProgress({
-                'articleID': '',
-                'videoUrl': youtubeLink,
-                'currentPosition': currentPosition.inMilliseconds,
-              });
-              _getTotalProgress();
+            _progressState.videoProgressMap[youtubeLink] =
+                currentPosition.inMilliseconds;
+            _progressState.totalProgressMap[youtubeLink] =
+                currentPosition.inMilliseconds;
+            //UPDATING THE CLOUD FIRESTORE WHEN PLAYING YOUTUBE VIDEO ON MOBILE
+            widget.updateCurrentVideoProgress({
+              'articleID': '',
+              'videoUrl': youtubeLink,
+              'currentPosition': currentPosition.inMilliseconds,
             });
-            totalVideoProgressController.add(videoProgressMap);
+            _progressState.updateTotalProgress(
+              videosTotalDuration: widget.videosTotalDuration,
+              callback: widget.updateTotalProgress,
+            );
+            _progressState.totalVideoProgressController.add(
+              _progressState.videoProgressMap,
+            );
           },
         );
       },
@@ -1356,20 +1353,23 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               },
               videoRatio: (videoPercentage) {},
               currentPosition: (currentTime) {
-                setState(() {
-                  videoProgressMap[videolink] = currentTime.inMilliseconds;
-                  totalProgressMap[videolink] = currentTime.inMilliseconds;
-                  //UPDATING THE CLOUD FIRESTORE WHEN PLAYING NORMALS VIDEO ON MOBILE
-                  //TODO:Try it if it is not inside the setstate function.
-                  //TODO: Testing it
-                  widget.updateCurrentVideoProgress({
-                    'articleID': '',
-                    'videoUrl': videolink,
-                    'currentPosition': currentTime.inMilliseconds,
-                  });
-                  _getTotalProgress();
+                _progressState.videoProgressMap[videolink] =
+                    currentTime.inMilliseconds;
+                _progressState.totalProgressMap[videolink] =
+                    currentTime.inMilliseconds;
+                //UPDATING THE CLOUD FIRESTORE WHEN PLAYING NORMAL VIDEO ON MOBILE
+                widget.updateCurrentVideoProgress({
+                  'articleID': '',
+                  'videoUrl': videolink,
+                  'currentPosition': currentTime.inMilliseconds,
                 });
-                totalVideoProgressController.add(videoProgressMap);
+                _progressState.updateTotalProgress(
+                  videosTotalDuration: widget.videosTotalDuration,
+                  callback: widget.updateTotalProgress,
+                );
+                _progressState.totalVideoProgressController.add(
+                  _progressState.videoProgressMap,
+                );
               },
             ),
           ),
@@ -1699,6 +1699,81 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 void _printWrapper(bool showPrint, String text) {
   if (showPrint) {
     debugPrint(text);
+  }
+}
+
+class EditorProgressState {
+  /// UI-driving values - wrapped in ValueNotifier so only progress bars rebuild.
+  final scrollProgress = ValueNotifier<double>(0.0);
+  final videoProgress = ValueNotifier<double>(0.0);
+  final totalProgress = ValueNotifier<double>(0.0);
+
+  /// Data maps - not directly read by the build tree, no notifier needed.
+  /// TODO: videoProgressMap should be updated with the videoList data from backend upon loading.
+  Map<String, dynamic> totalProgressMap = {};
+  Map<String, dynamic> videoProgressMap = {};
+  num scrollLength = 0.0;
+  double currentPosition = 0.0;
+
+  /// Streams that feed the notifiers.
+  final progressController = StreamController<num>();
+  final totalVideoProgressController = StreamController<Map<String, dynamic>>();
+
+  /// Get the scroll Length Position
+  /// Get the total Duration, that would be the totalVideoDuration
+  //TODO: In updating the totalInteractionProgress include all the videos and the
+  //scrollPosition.
+  void updateTotalProgress({
+    required int videosTotalDuration,
+    required Function(Map<String, dynamic>, double) callback,
+  }) {
+    final divisor = videosTotalDuration + scrollLength.toDouble();
+    if (divisor == 0) return;
+    // [totalProgressMap] contains the scrollPosition and the video Data.
+    totalProgress.value =
+        totalProgressMap.values.fold(0.0, (sum, v) => sum + v) / divisor;
+    //A call back to be sent to the Main Application
+    callback(totalProgressMap, totalProgress.value);
+  }
+
+  void updateVideoProgress({
+    required int videosTotalDuration,
+    required Function(Map<String, dynamic>, Map<String, dynamic>)
+    getVideosUpdates,
+    required Map<String, dynamic> videoDurationData,
+  }) {
+    if (videoProgressMap.isNotEmpty && videosTotalDuration > 0) {
+      videoProgress.value =
+          videoProgressMap.values.fold(0.0, (sum, v) => sum + v) /
+          videosTotalDuration;
+      getVideosUpdates(videoProgressMap, videoDurationData);
+    } else {
+      videoProgress.value = 0.0;
+    }
+  }
+
+  void recordVideoPosition(String videoUrl, int positionMs) {
+    videoProgressMap[videoUrl] = positionMs;
+    totalProgressMap[videoUrl] = positionMs;
+    totalVideoProgressController.add(videoProgressMap);
+  }
+
+  void loadFromWidget({
+    required Map<String, dynamic> metaData,
+    required Map<String, dynamic> metaDataTotal,
+  }) {
+    videoProgressMap.clear();
+    totalProgressMap.clear();
+    videoProgressMap = metaData;
+    totalProgressMap = metaDataTotal;
+  }
+
+  void dispose() {
+    scrollProgress.dispose();
+    videoProgress.dispose();
+    totalProgress.dispose();
+    progressController.close();
+    totalVideoProgressController.close();
   }
 }
 
