@@ -89,13 +89,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   final TextEditingController commentController = TextEditingController();
 
-  List<Comment> _comments = [];
+  final _comments = ValueNotifier<List<Comment>>([]);
 
-  String activeCommentId = '';
-
-  int selectedTextlength = 0;
-
-  int selectedTextPosition = 0;
+  final _selectionState = EditorSelectionState();
 
   int savedselectionLength = 0;
 
@@ -107,7 +103,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   double totalInteractionProgress = 0.0;
 
-  ScrollController scrollController = ScrollController();
+  ScrollController scrollController =
+      ScrollController(); // TODO: Appears unused (mobileScrollController is used instead) - remove if not needed
 
   ScrollController mobileScrollController = ScrollController();
 
@@ -126,31 +123,26 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   num _progress = 0.0;
 
-  bool _hasFocus = false;
-
   bool isLoading = false;
 
-  bool isWebviewvisible = false;
+  bool isWebviewvisible = false; // TODO: Appears unused - remove if not needed
 
   double _currentHeight = 0.0;
 
-  bool _editorLoaded = false;
-
   bool isEnabled = true;
 
-  bool autofocus = false;
+  bool autofocus =
+      false; // TODO: This is never set to true - clarify if it should be a widget parameter or remove
 
   late String _encodedStyle;
 
-  String textContent = '';
+  String textContent = ''; // TODO: Appears unused - remove if not needed
 
-  bool editorEnable = false;
+  bool editorEnable = false; // TODO: Appears unused - remove if not needed
 
   bool ensureVisible = false;
 
   bool? isLoadingDone;
-
-  bool showModal = false;
 
   FocusNode commentFocusNode = FocusNode();
 
@@ -158,10 +150,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   bool isReply = false;
   bool isEditingMode = false;
 
-  bool openComment = false;
-
-  bool showTextField = false;
-  bool alreadyShowModal = false;
+  /// Tracks whether we've already loaded the initial content into the editor.
+  /// Unlike widget.isOutSideEditor, this survives parent rebuilds.
+  bool _hasLoadedInitialContent = false;
 
   @override
   void initState() {
@@ -172,6 +163,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     if (kIsWeb && widget.isOutSideEditor) {
       SchedulerBinding.instance.scheduleFrameCallback((_) {
         // setHtmlTextToEditor(widget.editorContent);
+        _hasLoadedInitialContent = true;
         setState(() {
           isLoadingDone = false;
           videoProgressMap.clear();
@@ -204,7 +196,26 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant NewEditorScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only reset when a genuinely new article is loaded (different content),
+    // NOT on parent rebuilds triggered by keyboard/viewport changes.
+    if (widget.editorContent != oldWidget.editorContent) {
+      _hasLoadedInitialContent = false;
+    }
+  }
+
+  @override
   void dispose() {
+    _selectionState.dispose();
+    _comments.dispose();
+    mobileScrollController.removeListener(_onScroll);
+    mobileScrollController.dispose();
+    scrollController.dispose();
+    progressController.close();
+    totalVideoProgressController.close();
+    commentFocusNode.dispose();
+    commentController.dispose();
     // widget.controller.dispose();
     super.dispose();
   }
@@ -214,18 +225,16 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     final state = ref.watch(editorControllerProvider);
     //SetScroll Position for the first Option
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!kIsWeb && widget.isOutSideEditor) {
+      if (!kIsWeb && !_hasLoadedInitialContent) {
+        _hasLoadedInitialContent = true;
         setHtmlTextToEditor(widget.editorContent);
-        setState(() {
-          videoProgressMap.clear();
-          totalProgressMap.clear();
-          videoProgressMap = widget.metaData;
-          totalProgressMap = widget.metaDataTotal;
-          _updateTotalVideoProgress();
-          _waitAndJumptoSavedScrollPostion();
-          //  _getTotalProgress();
-          widget.isOutSideEditor = false;
-        });
+        videoProgressMap.clear();
+        totalProgressMap.clear();
+        videoProgressMap = widget.metaData;
+        totalProgressMap = widget.metaDataTotal;
+        _updateTotalVideoProgress();
+        _waitAndJumptoSavedScrollPostion();
+        widget.isOutSideEditor = false;
       }
     });
     return SafeArea(
@@ -235,35 +244,36 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
         child: Scaffold(
           backgroundColor: Colors.white,
           resizeToAvoidBottomInset: false,
-          floatingActionButton:
-              //CONDITION TO RENDER THE TEXTFIELD FOR MOBILE VERSION
-              !kIsWeb && selectedTextlength >= 1
-                  ? ElevatedButton(
-                    onPressed: () async {
-                      //Remove the backGround for former selected text
-                      widget.controller.setFormat(
-                        format: 'background',
-                        value: null,
-                        index: savedSelectionPosition,
-                        length: savedselectionLength,
-                      );
-                      //Set a pending new background for the new selectedText
-                      widget.controller.setFormat(
-                        format: 'background',
-                        value: '#3D3D3D',
-                        index: selectedTextPosition,
-                        length: selectedTextlength,
-                      );
-                      setState(() {
-                        savedSelectionPosition = selectedTextPosition;
-                        savedselectionLength = selectedTextlength;
-                        showModal = true;
-                        selectedTextlength = 0;
-                      });
-                    },
-                    child: const Text("Add Comment"),
-                  )
-                  : const SizedBox.shrink(),
+          floatingActionButton: ValueListenableBuilder<int>(
+            valueListenable: _selectionState.selectionLength,
+            builder: (context, length, _) {
+              if (kIsWeb || length < 1) return const SizedBox.shrink();
+              return ElevatedButton(
+                onPressed: () async {
+                  //Remove the backGround for former selected text
+                  widget.controller.setFormat(
+                    format: 'background',
+                    value: null,
+                    index: savedSelectionPosition,
+                    length: savedselectionLength,
+                  );
+                  //Set a pending new background for the new selectedText
+                  widget.controller.setFormat(
+                    format: 'background',
+                    value: '#3D3D3D',
+                    index: _selectionState.selectionPosition.value,
+                    length: _selectionState.selectionLength.value,
+                  );
+                  savedSelectionPosition =
+                      _selectionState.selectionPosition.value;
+                  savedselectionLength = _selectionState.selectionLength.value;
+                  _selectionState.showModal.value = true;
+                  _selectionState.selectionLength.value = 0;
+                },
+                child: const Text("Add Comment"),
+              );
+            },
+          ),
           //  : const SizedBox.shrink(),
           body: Column(
             children: [
@@ -394,11 +404,14 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                       ),
                                                 ),
                                       ),
-                                      _comments.isEmpty &&
-                                              selectedTextlength < 1
-                                          ? const SizedBox.shrink()
-                                          : openComment
-                                          ? Container(
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable:
+                                            _selectionState.openComment,
+                                        builder: (context, isOpen, _) {
+                                          if (!isOpen) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return Container(
                                             decoration: BoxDecoration(
                                               color: Colors.grey.withAlpha(20),
                                               borderRadius:
@@ -426,93 +439,128 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                 //Condition to show just the commentTextField
                                                 IconButton(
                                                   onPressed: () {
-                                                    setState(() {
-                                                      openComment = false;
-                                                    });
+                                                    _selectionState
+                                                        .openComment
+                                                        .value = false;
                                                   },
                                                   icon: Icon(
                                                     Icons.close,
                                                     weight: 900.0,
                                                   ),
                                                 ),
-                                                if (selectedTextlength >= 1 &&
-                                                    kIsWeb &&
-                                                    showTextField)
-                                                  CommentTextField(
-                                                    onCommentClick: (value) {
-                                                      if (value.isEmpty) {
-                                                        setState(() {
-                                                          selectedTextlength =
-                                                              0;
-                                                        });
-                                                      } else {
-                                                        widget.controller
-                                                            .addComment(value);
-                                                        selectedTextlength = 0;
-                                                      }
-                                                    },
-                                                    onCancelPressed: () {
-                                                      setState(() {
-                                                        selectedTextlength = 0;
-                                                      });
-                                                    },
-                                                  ),
+                                                ValueListenableBuilder<bool>(
+                                                  valueListenable:
+                                                      _selectionState
+                                                          .showTextField,
+                                                  builder: (
+                                                    context,
+                                                    showTf,
+                                                    _,
+                                                  ) {
+                                                    if (_selectionState
+                                                                .selectionLength
+                                                                .value <
+                                                            1 ||
+                                                        !kIsWeb ||
+                                                        !showTf) {
+                                                      return const SizedBox.shrink();
+                                                    }
+                                                    return CommentTextField(
+                                                      onCommentClick: (value) {
+                                                        if (value.isEmpty) {
+                                                          _selectionState
+                                                              .selectionLength
+                                                              .value = 0;
+                                                        } else {
+                                                          widget.controller
+                                                              .addComment(
+                                                                value,
+                                                              );
+                                                          _selectionState
+                                                              .selectionLength
+                                                              .value = 0;
+                                                        }
+                                                      },
+                                                      onCancelPressed: () {
+                                                        _selectionState
+                                                            .selectionLength
+                                                            .value = 0;
+                                                      },
+                                                    );
+                                                  },
+                                                ),
                                                 Expanded(
-                                                  child: ListView.builder(
-                                                    shrinkWrap: true,
-                                                    itemCount: _comments.length,
-                                                    itemBuilder: (
+                                                  child: ValueListenableBuilder<
+                                                    List<Comment>
+                                                  >(
+                                                    valueListenable: _comments,
+                                                    builder: (
                                                       context,
-                                                      index,
+                                                      comments,
+                                                      _,
                                                     ) {
-                                                      return CommentItemWidget(
-                                                        controller:
-                                                            widget.controller,
-                                                        isEditingMode:
-                                                            isEditingMode,
-                                                        onEditPressed: (value) {
-                                                          setState(() {
-                                                            isReply = value;
-                                                            isEditingMode =
-                                                                value;
-                                                          });
-                                                        },
-                                                        activeCommentId:
-                                                            activeCommentId,
-                                                        comment:
-                                                            _comments[index],
-                                                        enableCommentId: (
-                                                          value,
+                                                      return ListView.builder(
+                                                        shrinkWrap: true,
+                                                        itemCount:
+                                                            comments.length,
+                                                        itemBuilder: (
+                                                          context,
+                                                          index,
                                                         ) {
-                                                          setState(() {
-                                                            activeCommentId =
-                                                                value;
-                                                          });
-                                                        },
-                                                        onCardClick: () {
-                                                          setState(() {
-                                                            activeCommentId =
-                                                                _comments[index]
-                                                                    .id;
-                                                            widget.controller
-                                                                .scrollToComment(
-                                                                  _comments[index]
-                                                                      .id,
-                                                                );
-                                                            widget.controller
-                                                                .setActiveComment(
-                                                                  _comments[index]
-                                                                      .id,
-                                                                );
-                                                          });
-                                                        },
-                                                        isReply: isReply,
-                                                        onReplyPressed: (
-                                                          value,
-                                                        ) {
-                                                          setState(() {
-                                                            isReply = value;
-                                                          });
+                                                          return CommentItemWidget(
+                                                            controller:
+                                                                widget
+                                                                    .controller,
+                                                            isEditingMode:
+                                                                isEditingMode,
+                                                            onEditPressed: (
+                                                              value,
+                                                            ) {
+                                                              setState(() {
+                                                                isReply = value;
+                                                                isEditingMode =
+                                                                    value;
+                                                              });
+                                                            },
+                                                            activeCommentId:
+                                                                _selectionState
+                                                                    .activeCommentId
+                                                                    .value,
+                                                            comment:
+                                                                comments[index],
+                                                            enableCommentId: (
+                                                              value,
+                                                            ) {
+                                                              _selectionState
+                                                                  .activeCommentId
+                                                                  .value = value;
+                                                            },
+                                                            onCardClick: () {
+                                                              _selectionState
+                                                                      .activeCommentId
+                                                                      .value =
+                                                                  comments[index]
+                                                                      .id;
+                                                              widget.controller
+                                                                  .scrollToComment(
+                                                                    comments[index]
+                                                                        .id,
+                                                                  );
+                                                              widget.controller
+                                                                  .setActiveComment(
+                                                                    comments[index]
+                                                                        .id,
+                                                                  );
+                                                            },
+                                                            isReply: isReply,
+                                                            onReplyPressed: (
+                                                              value,
+                                                            ) {
+                                                              setState(() {
+                                                                isReply = value;
+                                                              });
+                                                            },
+                                                          );
                                                         },
                                                       );
                                                     },
@@ -520,8 +568,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                 ),
                                               ],
                                             ),
-                                          )
-                                          : const SizedBox.shrink(),
+                                          );
+                                        },
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -616,12 +665,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 ),
               ),
               //This the commentTextField for mobile Version
-              showModal
-                  ? CommentTextField(
+              ValueListenableBuilder<bool>(
+                valueListenable: _selectionState.showModal,
+                builder: (context, show, _) {
+                  if (!show) return const SizedBox.shrink();
+                  return CommentTextField(
                     onCancelPressed: () {
-                      setState(() {
-                        showModal = false;
-                      });
+                      _selectionState.showModal.value = false;
                     },
                     onCommentClick: (value) {
                       if (value.isEmpty) {
@@ -631,14 +681,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                           index: savedSelectionPosition,
                           length: savedselectionLength,
                         );
-                        setState(() {
-                          showModal = false;
-                        });
+                        _selectionState.showModal.value = false;
                       }
                     },
                     focusNode: commentFocusNode,
-                  )
-                  : const SizedBox.shrink(),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -660,7 +709,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
           initialSourceType: SourceType.html,
           height: kIsWeb ? MediaQuery.of(context).size.height : _currentHeight,
           onPageStarted: (s) {
-            _editorLoaded = false;
             if (kIsWeb) {
               Future.delayed(const Duration(microseconds: 0)).then((value) {
                 widget.controller.enableEditor(isEnabled);
@@ -675,11 +723,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
           onWebViewCreated: (controller) => _webviewController = controller,
           onPageFinished: (src) {
             Future.delayed(const Duration(microseconds: 0)).then((value) {
-              _editorLoaded = true;
-              debugPrint('_editorLoaded $_editorLoaded');
-              if (mounted) {
-                setState(() {});
-              }
               widget.controller.enableEditor(isEnabled);
               if (widget.editorContent.isNotEmpty) {
                 setHtmlTextToEditor(widget.editorContent);
@@ -775,19 +818,14 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             DartCallback(
               name: 'FocusChanged',
               callBack: (map) {
-                setState(() {
-                  _hasFocus = map?.toString() == 'true';
-                  if (_hasFocus) {
-                    commentFocusNode.unfocus();
-                  }
-                });
-
-                // if (widget.onFocusChanged != null) {
-                //   widget.onFocusChanged!(_hasFocus);
-                // }
+                final focused = map?.toString() == 'true';
+                _selectionState.hasFocus.value = focused;
+                if (focused) {
+                  commentFocusNode.unfocus();
+                }
 
                 /// scrolls to the end of the text area, to keep the focus visible
-                if (ensureVisible == true && _hasFocus) {
+                if (ensureVisible == true && focused) {
                   Scrollable.of(context).position.ensureVisible(
                     context.findRenderObject()!,
                     duration: const Duration(milliseconds: 300),
@@ -801,28 +839,11 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             DartCallback(
               name: 'OnEditingCompleted',
               callBack: (map) {
-                var tempText = "";
-                if (tempText == map) {
-                  return;
-                } else {
-                  tempText = map;
-                }
                 try {
                   if (widget.controller.changeController != null) {
-                    String finalText = "";
                     String parsedText = stripHtmlIfNeeded(map);
-                    if (parsedText.trim() == "") {
-                      finalText = "";
-                    } else {
-                      if (map != null) {
-                        setState(() {
-                          finalText = map;
-                        });
-                      }
-                    }
-                    // if (widget.onEditingComplete != null) {
-                    //   widget.onEditingComplete!(finalText);
-                    // }
+                    String finalText =
+                        (parsedText.trim().isEmpty) ? "" : (map ?? "");
                     widget.controller.changeController!.add(finalText);
                   }
                 } catch (e) {
@@ -832,6 +853,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 }
               },
             ),
+            // TODO: This commented-out OnSelectionChanged callback is now replaced by SelectionChannel.
+            // Remove this block if SelectionChannel fully covers the use case.
             // DartCallback(
             //   name: 'OnSelectionChanged',
             //   callBack: (selection) {
@@ -864,10 +887,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
             DartCallback(
               name: 'EditorLoaded',
               callBack: (map) {
-                _editorLoaded = true;
-                if (mounted) {
-                  setState(() {});
-                }
+                // Editor loaded - no rebuild needed, content is set via JS.
               },
             ),
             //THIS IS FOR TRACKING THE CURRENT VIDEO THAT IS PLAYING BOTH YOUTUBE AND
@@ -956,12 +976,10 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   if (comments != null) {
                     final commentConvert =
                         jsonDecode(comments) as List<dynamic>;
-                    setState(() {
-                      _comments =
-                          commentConvert
-                              .map((comment) => Comment.fromJson(comment))
-                              .toList();
-                    });
+                    _comments.value =
+                        commentConvert
+                            .map((comment) => Comment.fromJson(comment))
+                            .toList();
                   }
                 } catch (e) {
                   debugPrint(e.toString());
@@ -973,33 +991,27 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               callBack: (jsCommentId) {
                 try {
                   if (jsCommentId != null) {
-                    setState(() {
-                      activeCommentId = jsCommentId;
-                      if (jsCommentId.isNotEmpty) {
-                        openComment = true;
-                      }
-                    });
+                    _selectionState.activeCommentId.value = jsCommentId;
+                    if (jsCommentId.isNotEmpty) {
+                      _selectionState.openComment.value = true;
+                    }
                     if (jsCommentId.isNotEmpty &&
-                        _comments.isNotEmpty &&
+                        _comments.value.isNotEmpty &&
                         !kIsWeb &&
-                        !alreadyShowModal) {
+                        !_selectionState.alreadyShowModal) {
                       showCommentModalForMobile(
                         context,
-                        _comments,
+                        _comments.value,
                         widget.controller,
-                        activeCommentId,
+                        _selectionState.activeCommentId.value,
                         isReply,
                         (onclose) {
                           if (onclose) {
-                            setState(() {
-                              alreadyShowModal = false;
-                            });
+                            _selectionState.alreadyShowModal = false;
                           }
                         },
                       );
-                      setState(() {
-                        alreadyShowModal = true;
-                      });
+                      _selectionState.alreadyShowModal = true;
                     }
                     widget.controller.setActiveComment(jsCommentId);
                   }
@@ -1012,57 +1024,50 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                 try {
                   if (selectionData == null) return;
 
-                  if (_hasFocus) {
-                    setState(() {
-                      commentFocusNode.unfocus();
-                    });
+                  if (_selectionState.hasFocus.value) {
+                    commentFocusNode.unfocus();
                   }
                   final data = jsonDecode(selectionData);
                   if (data['hidden'] == true) {
-                    setState(() {
-                      selectedTextlength = 0;
-                      selectedTextPosition = 0;
-                    });
+                    _selectionState.selectionLength.value = 0;
+                    _selectionState.selectionPosition.value = 0;
                     return;
                   }
                   //The selectedTextLength is greater than one
                   //Then check if the selectedText is an existing commented text
-                  setState(() {
-                    selectedTextlength = data['length'];
-                    selectedTextPosition = data['index'];
-                    //TO render the comments for mobile version when already
-                    // commented text is highlighted
-                    if (!kIsWeb &&
-                        data['existingComment'] != null &&
-                        _comments.isNotEmpty &&
-                        !alreadyShowModal) {
-                      showCommentModalForMobile(
-                        context,
-                        _comments,
-                        widget.controller,
-                        data['existingComment']['commentId'],
-                        isReply,
-                        (onclose) {
-                          setState(() {
-                            alreadyShowModal = false;
-                          });
-                        },
-                      );
-                      alreadyShowModal = true;
-                    }
-                    if (data['existingComment'] != null) {
-                      final existingComment = data['existingComment'];
-                      activeCommentId = existingComment['commentId'];
-                      showTextField = false;
-                      openComment = true;
-                      widget.controller.setActiveComment(
-                        existingComment['commentId'],
-                      );
-                    } else {
-                      showTextField = true;
-                      openComment = true;
-                    }
-                  });
+                  _selectionState.selectionLength.value = data['length'];
+                  _selectionState.selectionPosition.value = data['index'];
+                  //TO render the comments for mobile version when already
+                  // commented text is highlighted
+                  if (!kIsWeb &&
+                      data['existingComment'] != null &&
+                      _comments.value.isNotEmpty &&
+                      !_selectionState.alreadyShowModal) {
+                    showCommentModalForMobile(
+                      context,
+                      _comments.value,
+                      widget.controller,
+                      data['existingComment']['commentId'],
+                      isReply,
+                      (onclose) {
+                        _selectionState.alreadyShowModal = false;
+                      },
+                    );
+                    _selectionState.alreadyShowModal = true;
+                  }
+                  if (data['existingComment'] != null) {
+                    final existingComment = data['existingComment'];
+                    _selectionState.activeCommentId.value =
+                        existingComment['commentId'];
+                    _selectionState.showTextField.value = false;
+                    _selectionState.openComment.value = true;
+                    widget.controller.setActiveComment(
+                      existingComment['commentId'],
+                    );
+                  } else {
+                    _selectionState.showTextField.value = true;
+                    _selectionState.openComment.value = true;
+                  }
                 } catch (e) {
                   debugPrint(e.toString());
                 }
@@ -1184,13 +1189,18 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
       // crossAxisAlignment: WrapCrossAlignment.start,
       direction: Axis.horizontal,
       customButtons: [
-        Container(
-          width: 25,
-          height: 25,
-          decoration: BoxDecoration(
-            color: _hasFocus ? Colors.green : Colors.grey,
-            borderRadius: BorderRadius.circular(15),
-          ),
+        ValueListenableBuilder<bool>(
+          valueListenable: _selectionState.hasFocus,
+          builder: (context, hasFocus, _) {
+            return Container(
+              width: 25,
+              height: 25,
+              decoration: BoxDecoration(
+                color: hasFocus ? Colors.green : Colors.grey,
+                borderRadius: BorderRadius.circular(15),
+              ),
+            );
+          },
         ),
         InkWell(
           onTap: () => widget.controller.unFocus(),
@@ -1208,6 +1218,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   }
 
   // Function for total progress
+  // TODO: This method calls setState() but is also called from inside other setState() blocks
+  // (e.g. progressController.stream.listen, GetVideoTracking). Nested setState is redundant -
+  // consider making this a plain method that updates fields, and let the caller's setState handle the rebuild.
   void _getTotalProgress() {
     /// Get the scroll Length Position
     /// Get the total Duration, that would be the totalVideoDuration
@@ -1679,6 +1692,27 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 void _printWrapper(bool showPrint, String text) {
   if (showPrint) {
     debugPrint(text);
+  }
+}
+
+class EditorSelectionState {
+  final selectionLength = ValueNotifier<int>(0);
+  final selectionPosition = ValueNotifier<int>(0);
+  final activeCommentId = ValueNotifier<String>('');
+  final hasFocus = ValueNotifier<bool>(false);
+  final showModal = ValueNotifier<bool>(false);
+  final openComment = ValueNotifier<bool>(false);
+  final showTextField = ValueNotifier<bool>(false);
+  bool alreadyShowModal = false; // not UI-driving, no notifier needed
+
+  void dispose() {
+    selectionLength.dispose();
+    selectionPosition.dispose();
+    activeCommentId.dispose();
+    hasFocus.dispose();
+    showModal.dispose();
+    openComment.dispose();
+    showTextField.dispose();
   }
 }
 
