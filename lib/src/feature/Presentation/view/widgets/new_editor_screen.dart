@@ -130,7 +130,6 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   bool isEditingMode = false;
 
   /// Tracks whether we've already loaded the initial content into the editor.
-  /// Tracks whether we've already loaded the initial content into the editor.
   /// Survives parent rebuilds (unlike a widget field which gets recreated).
   bool _hasLoadedInitialContent = false;
 
