@@ -71,6 +71,7 @@ class _CommentTextFieldState extends State<CommentTextField> {
             child: Column(
               children: [
                 TextField(
+                  autofocus: true,
                   focusNode: widget.focusNode,
                   controller: commentController,
                   style: TextStyle(fontSize: 10),
