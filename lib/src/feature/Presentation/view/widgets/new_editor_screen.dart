@@ -492,6 +492,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                           _selectionState
                                                               .selectionLength
                                                               .value = 0;
+                                                          _selectionState
+                                                              .showTextField
+                                                              .value = false;
                                                         } else {
                                                           widget.controller
                                                               .addComment(
@@ -500,6 +503,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                           _selectionState
                                                               .selectionLength
                                                               .value = 0;
+                                                          _selectionState
+                                                              .showTextField
+                                                              .value = false;
                                                         }
                                                       },
                                                       onCancelPressed: () {
