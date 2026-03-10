@@ -1075,6 +1075,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   if (data['hidden'] == true) {
                     _selectionState.selectionLength.value = 0;
                     _selectionState.selectionPosition.value = 0;
+                    _selectionState.showTextField.value = false;
                     return;
                   }
                   //The selectedTextLength is greater than one
