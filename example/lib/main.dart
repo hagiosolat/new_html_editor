@@ -331,7 +331,7 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                             currentPosition: p0['currentPosition'],
                           );
                     },
-                    isOutSideEditor: true,
+
                   ),
                 )
                 //THIS IS FOR THE WEB VERSION IN RENDERING THE EDITOR.
@@ -395,7 +395,7 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                             currentPosition: p0['currentPosition'],
                           );
                     },
-                    isOutSideEditor: true,
+
                   ),
                 ),
           ],
