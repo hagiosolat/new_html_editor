@@ -84,7 +84,7 @@ class QuillEditorController {
   /// The [setText] method is used to set the HTML text content in the editor,
   /// overriding any existing text with the new content.
   Future setText(String text) async {
-    return await _editorKey?.currentState?.setHtmlTextToEditor(text);
+    return await _editorKey?.currentState?.setHtmlTextToEditor(text, null);
   }
 
   /// Sets the Delta object in the editor.
@@ -212,7 +212,7 @@ class QuillEditorController {
 
   ///  [clear] method is used to clear the editor
   void clear() async {
-    await _editorKey?.currentState?.setHtmlTextToEditor('');
+    await _editorKey?.currentState?.setHtmlTextToEditor('', null);
   }
 
   /// [requestFocus] method is to request focus of the editor
@@ -289,14 +289,11 @@ class QuillEditorController {
 
   ///  [undo] method to undo the changes in editor
   void undo() async {
-    print('Testing at the controller level of the undo function');
-    print(_editorKey?.currentState);
     await _editorKey?.currentState?.undo;
   }
 
   ///  [redo] method to redo the changes in editor
   void redo() async {
-    print('Testing at the controller level of the redo function');
     await _editorKey?.currentState?.redo;
   }
 

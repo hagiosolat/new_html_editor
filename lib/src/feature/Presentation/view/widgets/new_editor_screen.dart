@@ -27,10 +27,12 @@ class NewEditorScreen extends ConsumerStatefulWidget
     required this.isOutSideEditor,
     required this.metaDataTotal,
     required this.updateScrollProgress,
+    required this.updateJSONComments,
     required this.updateTotalProgress,
     required this.updateCurrentVideoProgress,
     required this.getVideosUpdates,
     required this.videoDurationData,
+    this.savedComments,
   }) : super(key: controller.editorKey);
 
   final QuillEditorController controller;
@@ -39,7 +41,9 @@ class NewEditorScreen extends ConsumerStatefulWidget
   final Map<String, dynamic> metaDataTotal;
   final Map<String, dynamic> videoDurationData;
   final int videosTotalDuration;
+  final dynamic savedComments;
   final Function(dynamic) updateScrollProgress;
+  final Function(dynamic) updateJSONComments;
   final Function(dynamic, double) updateTotalProgress;
   final Function(Map<String, dynamic>) updateCurrentVideoProgress;
   final Function(Map<String, dynamic>, Map<String, dynamic>) getVideosUpdates;
@@ -215,7 +219,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
     //SetScroll Position for the first Option
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!kIsWeb && widget.isOutSideEditor) {
-        setHtmlTextToEditor(widget.editorContent);
+        setHtmlTextToEditor(widget.editorContent, widget.savedComments);
         setState(() {
           videoProgressMap.clear();
           totalProgressMap.clear();
@@ -272,6 +276,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   builder: (context, constraint) {
                     return Stack(
                       children: [
+                        //when it is website
                         kIsWeb
                             ? CustomScrollView(
                               slivers: [
@@ -665,7 +670,10 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               Future.delayed(const Duration(microseconds: 0)).then((value) {
                 widget.controller.enableEditor(isEnabled);
                 if (widget.editorContent.isNotEmpty) {
-                  setHtmlTextToEditor(widget.editorContent);
+                  setHtmlTextToEditor(
+                    widget.editorContent,
+                    widget.savedComments,
+                  );
                 }
               });
             }
@@ -682,7 +690,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
               }
               widget.controller.enableEditor(isEnabled);
               if (widget.editorContent.isNotEmpty) {
-                setHtmlTextToEditor(widget.editorContent);
+                setHtmlTextToEditor(widget.editorContent, widget.savedComments);
               }
               if (autofocus == true) {
                 widget.controller.focus();
@@ -961,6 +969,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                           commentConvert
                               .map((comment) => Comment.fromJson(comment))
                               .toList();
+                      widget.updateJSONComments(comments);
                     });
                   }
                 } catch (e) {
@@ -1150,6 +1159,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
           ),
           //  navigationDelegate: widget.navigationDelegate,
         ),
+
         if (isLoadingDone == false)
           Stack(
             children: [
@@ -1371,8 +1381,8 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   Future<dynamic> setSelectionRange(int index, int length) =>
       _setSelectionRange(index, length);
 
-  Future setHtmlTextToEditor(String text) =>
-      _setHtmlTextToEditor(htmlText: text);
+  Future setHtmlTextToEditor(String text, dynamic comments) =>
+      _setHtmlTextToEditor(htmlText: text, comments: comments);
 
   Future setDeltaToEditor(Map<dynamic, dynamic> deltaMap) =>
       _setDeltaToEditor(deltaMap: deltaMap);
@@ -1497,11 +1507,15 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
   }
 
   /// a private method to set the Html text to the editor
-  Future _setHtmlTextToEditor({required String htmlText}) async {
+  Future _setHtmlTextToEditor({
+    required String htmlText,
+    required dynamic comments,
+  }) async {
     return await _webviewController?.callJsMethod("setHtmlText", [
       htmlText,
       kIsWeb,
       isEnabled,
+      comments,
     ]);
   }
 

@@ -447,11 +447,7 @@ String getQuillPage({
               }, 150);                      
                                                 
             });   
-
-            quilleditor.on('text-change', () => {
-            sendCommentsToFlutter();
-            });
-
+        
             quilleditor.container.querySelector('.ql-editor').addEventListener('click', (e) => {            
               let target = e.target;
               while(target && target !== quilleditor.container){
