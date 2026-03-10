@@ -484,6 +484,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                       return const SizedBox.shrink();
                                                     }
                                                     return CommentTextField(
+                                                      key: ValueKey(
+                                                        '${_selectionState.selectionPosition.value}_${_selectionState.selectionLength.value}',
+                                                      ),
                                                       onCommentClick: (value) {
                                                         if (value.isEmpty) {
                                                           _selectionState
@@ -503,6 +506,9 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                         _selectionState
                                                             .selectionLength
                                                             .value = 0;
+                                                        _selectionState
+                                                            .showTextField
+                                                            .value = false;
                                                       },
                                                     );
                                                   },
@@ -1751,7 +1757,7 @@ class EditorProgressState {
     }
   }
 
-  void recordVideoPosition(String videoUrl, int positionMs) {
+  void recordVideoPosition(String videoUrl, num positionMs) {
     videoProgressMap[videoUrl] = positionMs;
     totalProgressMap[videoUrl] = positionMs;
     totalVideoProgressController.add(videoProgressMap);
