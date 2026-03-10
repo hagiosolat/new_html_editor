@@ -484,25 +484,22 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                                                       return const SizedBox.shrink();
                                                     }
                                                     return CommentTextField(
+                                                      key: ValueKey(
+                                                        '${_selectionState.selectionPosition.value}_${_selectionState.selectionLength.value}',
+                                                      ),
                                                       onCommentClick: (value) {
-                                                        if (value.isEmpty) {
-                                                          _selectionState
-                                                              .selectionLength
-                                                              .value = 0;
-                                                        } else {
+                                                        if (value.isNotEmpty) {
                                                           widget.controller
                                                               .addComment(
                                                                 value,
                                                               );
-                                                          _selectionState
-                                                              .selectionLength
-                                                              .value = 0;
                                                         }
+                                                        _selectionState
+                                                            .clearSelection();
                                                       },
                                                       onCancelPressed: () {
                                                         _selectionState
-                                                            .selectionLength
-                                                            .value = 0;
+                                                            .clearSelection();
                                                       },
                                                     );
                                                   },
@@ -1067,8 +1064,7 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
                   }
                   final data = jsonDecode(selectionData);
                   if (data['hidden'] == true) {
-                    _selectionState.selectionLength.value = 0;
-                    _selectionState.selectionPosition.value = 0;
+                    _selectionState.clearSelection();
                     return;
                   }
                   //The selectedTextLength is greater than one
@@ -1751,7 +1747,7 @@ class EditorProgressState {
     }
   }
 
-  void recordVideoPosition(String videoUrl, int positionMs) {
+  void recordVideoPosition(String videoUrl, num positionMs) {
     videoProgressMap[videoUrl] = positionMs;
     totalProgressMap[videoUrl] = positionMs;
     totalVideoProgressController.add(videoProgressMap);
@@ -1785,6 +1781,12 @@ class EditorSelectionState {
   final openComment = ValueNotifier<bool>(false);
   final showTextField = ValueNotifier<bool>(false);
   bool alreadyShowModal = false; // not UI-driving, no notifier needed
+
+  void clearSelection() {
+    selectionLength.value = 0;
+    selectionPosition.value = 0;
+    showTextField.value = false;
+  }
 
   void dispose() {
     selectionLength.dispose();
