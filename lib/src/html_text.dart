@@ -422,7 +422,7 @@ String getQuillPage({
                 }             
             });
             let selectionTimeout = null;
-            let lastSelectionSent = null;
+            window.lastSelectionSent = null;
 
             quilleditor.on('selection-change', function(range, oldRange, source)  {
              /// console.log('selection changed');
@@ -433,15 +433,15 @@ String getQuillPage({
               selectionTimeout = setTimeout(() => {
               if(range && range.length > 0){
                   const selectionKey = `\${range.index}, \${range.length}`;
-                if(selectionKey === lastSelectionSent){
+                if(selectionKey === window.lastSelectionSent){
                 console.log('Duplicate selection ignored');
                 return;
                 }
-                lastSelectionSent = selectionKey;
+                window.lastSelectionSent = selectionKey;
                 getSelectionRange(); 
 
               } else if(range && range.length === 0){
-               lastSelectionSent = null;
+               window.lastSelectionSent = null;
                getSelectionRange();
               }               
               }, 150);                      
