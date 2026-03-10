@@ -10,6 +10,8 @@ class HtmlData extends Equatable {
   final num? videosTotalDuration;
   final num? totalProgress; //it will scrollPosition, video durations,
   final num? scrollProgress;
+  final dynamic comments;
+  final bool isLocal;
   //This could be now optional
   //This could become optional
   final List<Video>? videos;
@@ -18,9 +20,11 @@ class HtmlData extends Equatable {
     this.articleData,
     this.title,
     this.videosTotalDuration,
+    this.comments,
     this.totalProgress,
     this.scrollProgress,
     this.videos,
+    this.isLocal = false,
   });
   @override
   List<Object?> get props => [
@@ -31,6 +35,7 @@ class HtmlData extends Equatable {
     totalProgress,
     scrollProgress,
     videos,
+    comments,
   ];
 
   Map<String, dynamic> toMap() {
@@ -51,6 +56,7 @@ class HtmlData extends Equatable {
       articleData:
           map['articleData'] != null ? map['articleData'] as String : null,
       title: map['title'] != null ? map['title'] as String : null,
+      comments: map['comments'],
       videosTotalDuration:
           map['videosTotalDuration'] != null
               ? map['videosTotalDuration'] as num
@@ -74,6 +80,30 @@ class HtmlData extends Equatable {
 
   factory HtmlData.fromJson(String source) =>
       HtmlData.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  HtmlData copyWith({
+    String? articleID,
+    String? articleData,
+    String? title,
+    num? videosTotalDuration,
+    num? totalProgress,
+    num? scrollProgress,
+    dynamic comments,
+    List<Video>? videos,
+    bool? isLocal,
+  }) {
+    return HtmlData(
+      articleID: articleID ?? this.articleID,
+      articleData: articleData ?? this.articleData,
+      title: title ?? this.title,
+      videosTotalDuration: videosTotalDuration ?? this.videosTotalDuration,
+      totalProgress: totalProgress ?? this.totalProgress,
+      scrollProgress: scrollProgress ?? this.scrollProgress,
+      videos: videos ?? this.videos,
+      comments: comments ?? this.comments,
+      isLocal: isLocal ?? this.isLocal,
+    );
+  }
 }
 
 class Video extends Equatable {

@@ -167,7 +167,7 @@ class _DataServicesProviderElement
 }
 
 String _$mobileDataServicesHash() =>
-    r'e2133598866ff3b454cb12a727ab0de802c96f21';
+    r'dba528dfd2570868d434c05fd776cd78ab70f012';
 
 /// See also [mobileDataServices].
 @ProviderFor(mobileDataServices)

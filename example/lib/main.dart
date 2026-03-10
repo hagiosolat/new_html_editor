@@ -39,6 +39,7 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
   num totalProgress = 0.0;
   int videoTotalDuration = 0;
   List<HtmlData> savedData = [];
+  dynamic comments;
 
   void videosToMap(List<Video> videos) {
     metaData = {};
@@ -62,74 +63,84 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
     }
   }
 
-  void saveArticleProgress() {
-    //VidoData is available...
-    //videoTotalDuration available...
-    //scrollProgress available...
-    List<Video> videos =
-        videoMetaData.keys
-            .where((key) => videosDurationsData.containsKey(key))
-            .map(
-              (key) => Video(
-                videoUrl: key,
-                savedDuration: videoMetaData[key]!,
-                videoDuration: videosDurationsData[key]!,
-              ),
-            )
-            .toList();
+  // void saveArticleProgress() {
+  //   //VidoData is available...
+  //   //videoTotalDuration available...
+  //   //scrollProgress available...
+  //   List<Video> videos =
+  //       videoMetaData.keys
+  //           .where((key) => videosDurationsData.containsKey(key))
+  //           .map(
+  //             (key) => Video(
+  //               videoUrl: key,
+  //               savedDuration: videoMetaData[key]!,
+  //               videoDuration: videosDurationsData[key]!,
+  //             ),
+  //           )
+  //           .toList();
 
-    // List<Video> videos =
-    //     videoMetaData.entries
-    //         .map(
-    //           (video) => Video(videoUrl: video.key, savedDuration: video.value),
-    //         )
-    //         .toList();
-    final savingData = HtmlData(
-      articleData: editorContent,
-      articleID: articleID,
-      videos: videos,
-      videosTotalDuration: videoTotalDuration,
-      scrollProgress: scrollProgress,
-      totalProgress: totalProgress,
-    );
+  //   // List<Video> videos =
+  //   //     videoMetaData.entries
+  //   //         .map(
+  //   //           (video) => Video(videoUrl: video.key, savedDuration: video.value),
+  //   //         )
+  //   //         .toList();
+  //   final savingData = HtmlData(
+  //     articleData: editorContent,
+  //     articleID: articleID,
+  //     videos: videos,
+  //     videosTotalDuration: videoTotalDuration,
+  //     scrollProgress: scrollProgress,
+  //     totalProgress: totalProgress,
+  //   );
 
-    int articleIndex = savedData.indexWhere(
-      (article) => article.articleID == savingData.articleID,
-    );
+  //   int articleIndex = savedData.indexWhere(
+  //     (article) => article.articleID == savingData.articleID,
+  //   );
 
-    if (articleIndex > -1) {
-      savedData[articleIndex] = savingData;
-    } else {
-      savedData.add(savingData);
-    }
-  } 
- //TO DO: ALSO A WORK IN PROGRESS
+  //   if (articleIndex > -1) {
+  //     savedData[articleIndex] = savingData;
+  //   } else {
+  //     savedData.add(savingData);
+  //   }
+  // }
+
+  //TO DO: ALSO A WORK IN PROGRESS
   void saveProgress() {
     ref
-        .read(saveProgressProvider.notifier)
+        .read(htmlContentControllerProvider.notifier)
         .saveArticleProgress(
           articleID: articleID,
-          articleData: editorContent,
           videoMetaData: videoMetaData,
           videosDurationsData: videosDurationsData,
           scrollProgress: scrollProgress,
           totalProgress: totalProgress,
           videosTotalDuration: videoTotalDuration,
+          comments: comments,
         );
+  }
+
+  @override
+  void initState() {
+    controller.changeController?.stream.listen((data) {
+      ref
+          .read(htmlContentControllerProvider.notifier)
+          .saveArticleProgress(articleID: articleID, articleData: data);
+    });
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final articleList = ref.watch(htmlContentControllerProvider);
     //TO DO: WORK IN PROGRESS. TAKING APP STATE SAVING TO THE CONTROLLER CLASS LEVEL
-    final result = ref.watch(saveProgressProvider);
     return Scaffold(
       body: PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPopUp, result) {
           setState(() {
             isWebviewvisible = false;
-            saveArticleProgress();
+            //  saveArticleProgress();
             saveProgress();
           });
         },
@@ -185,28 +196,46 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                           //Assign editorContent of the selectdArticle
                           //(The List of Articles are coming from the backend)
                           editorContent = articleList[index].articleData ?? '';
-
                           //Assign articleID of the selectdArticle
                           //(The List of Articles are coming from the backend)
                           articleID = articleList[index].articleID ?? '';
 
                           //Map of the available videos with the currentPosition of the videos.
-                          metaData = ref.read(dataServicesProvider(index));
+                          articleList[index].isLocal
+                              ? videosToMap(articleList[index].videos ?? [])
+                              : metaData = ref.read(
+                                dataServicesProvider(index),
+                              );
+                          //Saved Comments Data
+                          comments = articleList[index].comments;
 
                           //This is the video total Duration
-                          videoTotalDuration = ref.read(
-                            videoTotalDurationProvider(index),
-                          );
+                          videoTotalDuration =
+                              articleList[index].isLocal
+                                  ? articleList[index].videosTotalDuration
+                                          ?.toInt() ??
+                                      0
+                                  : ref.read(videoTotalDurationProvider(index));
                           //Contains the map of the scroll Position and the videos with their
                           //progresss that was made from the back end.
-                          metaDataTotal = ref.read(
-                            mobileDataServicesProvider(index),
-                          );
+                          articleList[index].isLocal
+                              ? allProgressToMap(
+                                articleList[index].videos ?? [],
+                                articleList[index].scrollProgress?.toDouble() ??
+                                    0.0,
+                              )
+                              : metaDataTotal = ref.read(
+                                mobileDataServicesProvider(index),
+                              );
 
                           //Contains the video map with their duration to work with mark as Read button.
-                          videosDurations = ref.read(
-                            getVideoDurationsProvider(index),
-                          );
+                          articleList[index].isLocal
+                              ? videoDurationToMap(
+                                articleList[index].videos ?? [],
+                              )
+                              : videosDurations = ref.read(
+                                getVideoDurationsProvider(index),
+                              );
                         }
                         isWebviewvisible = true;
                       });
@@ -250,10 +279,16 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                   child: NewEditorScreen(
                     controller: controller,
                     editorContent: editorContent,
+                    savedComments: comments,
                     metaData: metaData,
                     metaDataTotal: metaDataTotal,
                     videosTotalDuration: videoTotalDuration,
                     videoDurationData: videosDurations,
+                    updateJSONComments: (commentsData) {
+                      setState(() {
+                        comments = commentsData;
+                      });
+                    },
                     //Get videos Update is to get Map of the available
                     //videos and their currentPositions.
                     //Then when it is about to be saved for the ephemeral state, the Map can be converted
@@ -305,11 +340,15 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                   visible: isWebviewvisible,
                   child: NewEditorScreen(
                     controller: controller,
+                    savedComments: comments,
                     editorContent: editorContent,
                     metaData: metaData,
                     metaDataTotal: metaDataTotal,
                     videosTotalDuration: videoTotalDuration,
                     videoDurationData: videosDurations,
+                    updateJSONComments: (commentsData) {
+                      comments = commentsData;
+                    },
                     //Get videos Update is to get Map of the available
                     //videos and their currentPositions.
                     //Then when it is about to be saved for the ephemeral state, the Map can be converted
