@@ -1,0 +1,8 @@
+  0s riverpod_generator on 82 inputs; example/.dart_tool/dartpad/web_plugin_registrant.dart
+  0s riverpod_generator on 82 inputs: 1 skipped; example/integration_test/plugin_integration_test.dart
+  0s riverpod_generator on 82 inputs: 82 skipped
+  0s source_gen:combining_builder on 82 inputs; example/.dart_tool/dartpad/web_plugin_registrant.dart
+  0s source_gen:combining_builder on 82 inputs: 82 skipped
+E riverpod_generator on example/lib/Presentation/controller/html_content_controller.dart:
+  InvalidTypeException: The type is invalid and cannot be converted to code.
+  Failed to build with build_runner/jit in 2s; wrote 0 outputs.

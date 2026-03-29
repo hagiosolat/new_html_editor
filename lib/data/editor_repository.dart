@@ -1,11 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:new_html_editor/new_html_editor.dart';
 import 'package:new_html_editor/src/utils/hex_color.dart';
+import 'package:new_html_editor/src/utils/string_util.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../../new_html_editor.dart';
-import '../../utils/string_util.dart';
 part 'editor_repository.g.dart';
 
 @riverpod
