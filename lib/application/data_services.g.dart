@@ -317,7 +317,7 @@ final class GetVideoDurationsProvider
   }
 }
 
-String _$getVideoDurationsHash() => r'21d40aaa05f522b50d9a3977019e07baebddae14';
+String _$getVideoDurationsHash() => r'b274e414944bf82a30490957a051fa34e4ac6786';
 
 final class GetVideoDurationsFamily extends $Family
     with $FunctionalFamilyOverride<Map<String, double?>, int> {

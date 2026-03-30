@@ -64,9 +64,9 @@ Map<String, double?> getVideoDurations(Ref ref, int index) {
       if (url == null) continue;
 
       if (kIsWeb && url.contains('youtube')) {
-        params['$url?enablejsapi=1'] = video.videoDuration;
+        params['$url?enablejsapi=1'] = video.videoDuration?.toDouble();
       } else {
-        params[url] = video.videoDuration;
+        params[url] = video.videoDuration?.toDouble();
       }
     }
   }
