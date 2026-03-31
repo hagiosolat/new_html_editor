@@ -6,58 +6,158 @@ part of 'html_content_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$htmlContentControllerHash() =>
-    r'45f97ff3e69b367eeece89346e0ed0773105c894';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [HtmlContentController].
 @ProviderFor(HtmlContentController)
-final htmlContentControllerProvider =
-    AutoDisposeNotifierProvider<HtmlContentController, List<HtmlData>>.internal(
-      HtmlContentController.new,
-      name: r'htmlContentControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$htmlContentControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
+const htmlContentControllerProvider = HtmlContentControllerProvider._();
+
+final class HtmlContentControllerProvider
+    extends $NotifierProvider<HtmlContentController, List<HtmlData>> {
+  const HtmlContentControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'htmlContentControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$htmlContentControllerHash();
+
+  @$internal
+  @override
+  HtmlContentController create() => HtmlContentController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<HtmlData> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<HtmlData>>(value),
     );
+  }
+}
 
-typedef _$HtmlContentController = AutoDisposeNotifier<List<HtmlData>>;
-String _$paramsUpateControllerHash() =>
-    r'd04d7ce198ad6e04c3bca5cf2cb5d95355d4fd36';
+String _$htmlContentControllerHash() =>
+    r'54be7ef785f763a176f4632400cb70180988b058';
 
-/// See also [ParamsUpateController].
+abstract class _$HtmlContentController extends $Notifier<List<HtmlData>> {
+  List<HtmlData> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<List<HtmlData>, List<HtmlData>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<HtmlData>, List<HtmlData>>,
+              List<HtmlData>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
 @ProviderFor(ParamsUpateController)
-final paramsUpateControllerProvider =
-    AutoDisposeNotifierProvider<ParamsUpateController, void>.internal(
-      ParamsUpateController.new,
-      name: r'paramsUpateControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$paramsUpateControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const paramsUpateControllerProvider = ParamsUpateControllerProvider._();
 
-typedef _$ParamsUpateController = AutoDisposeNotifier<void>;
-String _$saveProgressHash() => r'bc85fcaac003d5e73b23ed901f6f6bfc4a4aa12f';
+final class ParamsUpateControllerProvider
+    extends $AsyncNotifierProvider<ParamsUpateController, void> {
+  const ParamsUpateControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'paramsUpateControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
-/// See also [SaveProgress].
+  @override
+  String debugGetCreateSourceHash() => _$paramsUpateControllerHash();
+
+  @$internal
+  @override
+  ParamsUpateController create() => ParamsUpateController();
+}
+
+String _$paramsUpateControllerHash() =>
+    r'ee1c0458a6cd19b41a5d5a1ff446cb758ae3686f';
+
+abstract class _$ParamsUpateController extends $AsyncNotifier<void> {
+  FutureOr<void> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    build();
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, null);
+  }
+}
+
 @ProviderFor(SaveProgress)
-final saveProgressProvider =
-    AutoDisposeNotifierProvider<SaveProgress, List<HtmlData>>.internal(
-      SaveProgress.new,
-      name: r'saveProgressProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$saveProgressHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const saveProgressProvider = SaveProgressProvider._();
 
-typedef _$SaveProgress = AutoDisposeNotifier<List<HtmlData>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class SaveProgressProvider
+    extends $NotifierProvider<SaveProgress, List<HtmlData>> {
+  const SaveProgressProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'saveProgressProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$saveProgressHash();
+
+  @$internal
+  @override
+  SaveProgress create() => SaveProgress();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<HtmlData> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<HtmlData>>(value),
+    );
+  }
+}
+
+String _$saveProgressHash() => r'a6574b4103a4f4673ba658757972d6bb958a3413';
+
+abstract class _$SaveProgress extends $Notifier<List<HtmlData>> {
+  List<HtmlData> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<List<HtmlData>, List<HtmlData>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<HtmlData>, List<HtmlData>>,
+              List<HtmlData>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

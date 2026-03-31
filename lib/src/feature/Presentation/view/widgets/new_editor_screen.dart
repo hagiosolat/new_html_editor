@@ -15,6 +15,9 @@ import 'package:new_html_editor/src/html_text.dart';
 import '../../../../core/edit_table_drop_down.dart';
 import '../../../../core/webviewx/src/models/scroll_position.dart';
 import '../../../../core/webviewx/src/models/video_progress.dart';
+// Below import is only needed for the showAIChatIconInAppbarProvider for hiding the AI chat icon in the AppBar.
+// Consider changing the hiding logic for loose coupling.
+import 'package:responsive_1/src/features/ai_chat/presentation/controllers/ai_chat_controller.dart';
 
 class NewEditorScreen extends ConsumerStatefulWidget
     with WidgetsBindingObserver {
@@ -135,6 +138,13 @@ class NewEditorScreenState extends ConsumerState<NewEditorScreen> {
 
   @override
   void initState() {
+    //to hide the AI Chat Icon in the AppBar when the Editor Screen is initialized
+    Future.microtask(() {
+      debugPrint(
+        "EditorScreen: Initializing Home Screen and showing AI Chat Icon in AppBar",
+      );
+      ref.read(showAIChatIconInAppbarProvider.notifier).hide();
+    });
     // _currentHeight = MediaQuery.of(context).size.height;
     _fontFamily = _editorTextStyle.fontFamily ?? 'Roboto';
     _encodedStyle = Uri.encodeFull(_fontFamily);

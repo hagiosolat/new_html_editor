@@ -1,4 +1,4 @@
-import 'package:new_html_editor/src/feature/Data/editor_repository.dart';
+import 'package:new_html_editor/data/editor_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'functions_controller.g.dart';
 

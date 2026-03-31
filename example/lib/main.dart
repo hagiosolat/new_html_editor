@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:new_html_editor/domain/html_data_model.dart';
 import 'package:new_html_editor/new_html_editor.dart';
-import 'package:new_html_editor_example/Application/data_services.dart';
-import 'package:new_html_editor_example/Domain/html_data_model.dart';
-import 'package:new_html_editor_example/Presentation/controller/html_content_controller.dart';
+import 'package:new_html_editor/application/data_services.dart';
+import 'package:new_html_editor_example/presentation/controller/html_content_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,10 +33,10 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
   Map<String, dynamic> metaData = {};
   Map<String, dynamic> metaDataTotal = {};
   Map<String, dynamic> videoMetaData = {};
-  Map<String, dynamic> videosDurationsData = {};
+  Map<String, int> videosDurationsData = {};
   Map<String, dynamic> videosDurations = {};
-  num scrollProgress = 0.0;
-  num totalProgress = 0.0;
+  double scrollProgress = 0.0;
+  double totalProgress = 0.0;
   int videoTotalDuration = 0;
   List<HtmlData> savedData = [];
 
@@ -102,8 +102,9 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
     } else {
       savedData.add(savingData);
     }
-  } 
- //TO DO: ALSO A WORK IN PROGRESS
+  }
+
+  //TO DO: ALSO A WORK IN PROGRESS
   void saveProgress() {
     ref
         .read(saveProgressProvider.notifier)
@@ -160,18 +161,18 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                                 articleList[index].articleID,
                           );
                           //Convert the available videos in the article to Map type an save it inside metaData variable.
-                          videosToMap(selectedArticle.videos ?? []);
+                          videosToMap(selectedArticle.videos);
 
                           //Convert the available videos and the scrollPosition to Map type
                           //And save it inside the metaDataTotal variable
                           allProgressToMap(
-                            selectedArticle.videos ?? [],
+                            selectedArticle.videos,
                             selectedArticle.scrollProgress?.toDouble() ?? 0.0,
                           );
 
                           //Convert the video DUrations to Map type to save the video Durations
                           //Such that Mark as Read button can function Appropriately
-                          videoDurationToMap(selectedArticle.videos ?? []);
+                          videoDurationToMap(selectedArticle.videos);
 
                           //Assign the articleData(HTML) to editorContent variable
                           editorContent = selectedArticle.articleData ?? '';
@@ -260,14 +261,15 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                     //to the video Custom Data and to a list.
                     getVideosUpdates: (videoData, videoDurationsDataIn) {
                       videoMetaData = videoData;
-                      videosDurationsData = videoDurationsDataIn;
+                      videosDurationsData =
+                          videoDurationsDataIn as Map<String, int>;
                     },
                     //THE ESSENCE OF GETTING THE PROGRESS WHICH IS THE SCROLL PROGRESS
                     //is to keep track of the scroll progress such
                     //that when the application is laoded again
                     //the application can resume back to the scroll Position.
                     updateScrollProgress: (progress) {
-                      scrollProgress = progress as num;
+                      scrollProgress = progress as double;
 
                       ref
                           .read(paramsUpateControllerProvider.notifier)
@@ -296,7 +298,6 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                             currentPosition: p0['currentPosition'],
                           );
                     },
-
                   ),
                 )
                 //THIS IS FOR THE WEB VERSION IN RENDERING THE EDITOR.
@@ -317,7 +318,8 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                     getVideosUpdates: (videoData, videoDurationDataIn) {
                       setState(() {
                         videoMetaData = videoData;
-                        videosDurationsData = videoDurationDataIn;
+                        videosDurationsData =
+                            videoDurationDataIn as Map<String, int>;
                       });
                     },
                     //THE ESSENCE OF GETTING THE PROGRESS WHICH IS THE SCROLL PROGRESS
@@ -326,7 +328,7 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                     //the application can resume back to the scroll Position.
                     updateScrollProgress: (progress) {
                       setState(() {
-                        scrollProgress = progress as num;
+                        scrollProgress = progress as double;
                       });
                       //ref.read(articleProgressControllerProvider.notifier).addOrUpdateArticle(article)
                       ref
@@ -356,7 +358,6 @@ class _ArticleListScreenState extends ConsumerState<ArticleListScreen> {
                             currentPosition: p0['currentPosition'],
                           );
                     },
-
                   ),
                 ),
           ],
