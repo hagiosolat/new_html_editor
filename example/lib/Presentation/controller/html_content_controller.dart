@@ -4,16 +4,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'html_content_controller.g.dart';
 
-@Riverpod(keepAlive: true)
+@riverpod
 class HtmlContentController extends _$HtmlContentController {
   @override
   List<HtmlData> build() {
-    return getHtmlContent();
-  }
-
-  List<HtmlData> getHtmlContent() {
-    final repo = ref.read(repoProvider).getHtmlList();
-    return repo;
+    return ref.read(repoProvider).getHtmlList();
   }
 
   void saveArticleProgress({

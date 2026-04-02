@@ -109,8 +109,8 @@ class HtmlData extends Equatable {
 class Video extends Equatable {
   final String? videoUrl;
   final String? thumbnailUrl;
-  final num? videoDuration;
-  final num? savedDuration;
+  final Object? videoDuration;
+  final Object? savedDuration;
 
   const Video({
     this.videoUrl,

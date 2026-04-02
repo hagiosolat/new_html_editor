@@ -6,23 +6,51 @@ part of 'editor_repository.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$editorRepositoryHash() => r'bab1506c3eb68ff573b110f78f197ffbbcdf2c03';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [editorRepository].
 @ProviderFor(editorRepository)
-final editorRepositoryProvider = AutoDisposeProvider<EditorRepository>.internal(
-  editorRepository,
-  name: r'editorRepositoryProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$editorRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const editorRepositoryProvider = EditorRepositoryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef EditorRepositoryRef = AutoDisposeProviderRef<EditorRepository>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class EditorRepositoryProvider
+    extends
+        $FunctionalProvider<
+          EditorRepository,
+          EditorRepository,
+          EditorRepository
+        >
+    with $Provider<EditorRepository> {
+  const EditorRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'editorRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$editorRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<EditorRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  EditorRepository create(Ref ref) {
+    return editorRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(EditorRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<EditorRepository>(value),
+    );
+  }
+}
+
+String _$editorRepositoryHash() => r'bab1506c3eb68ff573b110f78f197ffbbcdf2c03';

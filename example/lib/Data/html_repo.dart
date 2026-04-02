@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:new_html_editor_example/Data/dummydata.dart';
 import 'package:new_html_editor_example/Domain/html_data_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

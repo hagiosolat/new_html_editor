@@ -6,21 +6,46 @@ part of 'html_repo.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$repoHash() => r'bad87c616ca92f60aa2b252e6013385dc1da35f3';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [repo].
 @ProviderFor(repo)
-final repoProvider = AutoDisposeProvider<HtmlRepo>.internal(
-  repo,
-  name: r'repoProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$repoHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const repoProvider = RepoProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef RepoRef = AutoDisposeProviderRef<HtmlRepo>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class RepoProvider
+    extends $FunctionalProvider<HtmlRepo, HtmlRepo, HtmlRepo>
+    with $Provider<HtmlRepo> {
+  const RepoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'repoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$repoHash();
+
+  @$internal
+  @override
+  $ProviderElement<HtmlRepo> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  HtmlRepo create(Ref ref) {
+    return repo(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(HtmlRepo value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<HtmlRepo>(value),
+    );
+  }
+}
+
+String _$repoHash() => r'bad87c616ca92f60aa2b252e6013385dc1da35f3';
